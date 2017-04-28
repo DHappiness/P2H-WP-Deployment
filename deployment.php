@@ -3,10 +3,12 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 set_time_limit( 3600 );
 
-include_once( 'include/updater.php' );
-include_once( 'include/settings-form.php' );
-
-if ( isset( $_POST['action'] ) ) {
+if ( ! isset( $_POST['action'] ) ) {
+  include_once( 'include/updater.php' );
+  include_once( 'include/settings-form.php' );
+} else {
+  
+  include_once( 'include/settings-form.php' );
   
   // include configuration file
   include_once( 'include/config.php' );
@@ -191,35 +193,7 @@ if ( isset( $_POST['action'] ) ) {
     }
   }
   
-  
-  // Parse imported html-file and save to appropriate templates.
-  if ( isset( $_FILES['homepage'] ) && ! empty( $_FILES['homepage'] ) ) {
-    
-    function DOMinnerHTML(DOMNode $element) { 
-        $innerHTML = ""; 
-        $children  = $element->childNodes;
-        foreach ( $children as $child ) {
-            $innerHTML .= $element->ownerDocument->saveHTML($child);
-        }
-        return $innerHTML; 
-    } 
-    
-    if ( $homepage_dom = file_get_contents( $_FILES['homepage']['tmp_name'] ) ) {
-      $dom = new DOMDocument();
-      $dom->preserveWhiteSpace = false;
-      $dom->formatOutput       = true;
-      libxml_use_internal_errors(true);
-      $dom->load($homepage_dom);
-      libxml_clear_errors();
-      $tag_main = $dom->getElementsByTagName( 'main' );
-      print_r( $tag_main );
-      foreach ($tag_main as $tag) {
-        echo 'TEST: ' . DOMinnerHTML($tag) . "\n";
-        echo 'HTML of main tag: <pre>' . print_r( $tag, true ). '</pre>';
-      }
-    }
-  }
-  
+
   
   // delete deployment files
   if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
