@@ -1,7 +1,7 @@
 <h1># P2H-WP-Deployment</h1>
 <p><em>Useful only for P2H employees.</em></p>
 
-<p>Current Versing: 0.3 BETA</p>
+<p>Current Versing: 0.3.1 BETA</p>
 
 <p>Edit "include/config.php" before using.</p>
 
