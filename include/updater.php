@@ -1,7 +1,7 @@
 <?php include_once( 'config.php' );
 global $deployment_settings;
 if ( empty( $deployment_settings['svn_username'] ) || empty( $deployment_settings['svn_password'] ) ) {
-	echo '<p style="color:red; font-size: 22px;">Settings is not fully configured! Go to include/config.php and set all required data.</p>';
+	echo '<p style="color:red; font-size: 22px;">Settings is not fully configured! Go to include/config.php and setup all the required data.</p>';
 }
 $default_settings = $deployment_settings;
 
