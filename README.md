@@ -1,7 +1,7 @@
 <h1># P2H-WP-Deployment</h1>
 <em>Useful only for P2H employees.</em>
-
-Edit "include/config.php" before using.
+<br />
+<p>Edit "include/config.php" before using.</p>
 
 <strong>Capabilities:</strong>
 - Downloading and installing latest WordPress version
