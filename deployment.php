@@ -3,16 +3,15 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 set_time_limit( 3600 );
 
+// include configuration file
+include( 'include/config.inc' );
+
 if ( ! isset( $_POST['action'] ) ) {
   include_once( 'include/updater.php' );
   include_once( 'include/settings-form.php' );
 } else {
   
   include_once( 'include/settings-form.php' );
-  
-  // include configuration file
-  include_once( 'include/config.php' );
-  global $deployment_settings;
   
   // upload and unpack latest wordpress version
   include_once( 'include/BetterZipArchive.php' );
@@ -193,7 +192,6 @@ if ( ! isset( $_POST['action'] ) ) {
     }
   }
   
-
   
   // delete deployment files
   if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
