@@ -73,7 +73,7 @@ if ( ! isset( $_POST['action'] ) ) {
   
   $custom_base_theme_location = 'include/base';
   
-  function recursive_svn_uploading( $url, $upload_path ) {
+  function recursive_svn_uploading( $url, $upload_path, $deployment_settings ) {
     
     $context = stream_context_create(array (
         'http' => array (
@@ -93,19 +93,19 @@ if ( ! isset( $_POST['action'] ) ) {
       if ( $files->index->dir ) {
         foreach( $files->index->dir as $dir ) {
           $dir = (array) $dir;
-          recursive_svn_uploading( $url . $dir['@attributes']['href'], $upload_path . $dir['@attributes']['href'] );
+          recursive_svn_uploading( $url . $dir['@attributes']['href'], $upload_path . $dir['@attributes']['href'], $deployment_settings );
         }
       }
       
     endif;
   }
   if ( in_array( 'acf', $deployment_settings['install_plugins'] ) ) {
-    recursive_svn_uploading( $acf_svn_url, $acf_path );
+    recursive_svn_uploading( $acf_svn_url, $acf_path, $deployment_settings );
   }
   if ( is_dir( $custom_base_theme_location ) ) {
-    rcopy($custom_base_theme_location, $base_theme_path);
+    rcopy( $custom_base_theme_location, $base_theme_path );
   } else {
-    recursive_svn_uploading( $base_theme_svn_url, $base_theme_path );
+    recursive_svn_uploading( $base_theme_svn_url, $base_theme_path, $deployment_settings );
   }
   
   rename( $base_theme_path . 'languages/base.pot', str_replace( 'base.pot', $_POST['dbname'] . '.pot', $base_theme_path . 'languages/base.pot' ) );
@@ -192,6 +192,7 @@ if ( ! isset( $_POST['action'] ) ) {
     }
   }
   
+
   
   // delete deployment files
   if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
