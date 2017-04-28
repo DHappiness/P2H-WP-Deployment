@@ -2,7 +2,7 @@
   <form action="./deployment.php" method="post" enctype="multipart/form-data">
     <fieldset>
       <legend>MySQL Settings</legend>
-      <input type="text" name="dbname" placeholder="DB name + user name ( they are the same )" />
+      <input type="text" name="dbname" size="100" placeholder="DB name + user name ( they are the same )" />
       <input type="text" name="dbuser" placeholder="DB User" />
       <input type="text" name="password" placeholder="Password" />
     </fieldset>
