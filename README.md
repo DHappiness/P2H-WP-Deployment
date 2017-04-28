@@ -3,7 +3,6 @@
 
 <p>Current Versing: 0.3 BETA</p>
 
-<br>
 <p>Edit "include/config.php" before using.</p>
 
 <strong>Capabilities:</strong>
