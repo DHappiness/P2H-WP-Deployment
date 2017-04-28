@@ -5,16 +5,15 @@ if ( empty( $deployment_settings['svn_username'] ) || empty( $deployment_setting
 }
 $default_settings = $deployment_settings;
 
-function get_content_from_github($url) {
-	$ch = curl_init();
-	curl_setopt($ch,CURLOPT_URL,$url);
-	curl_setopt($ch,CURLOPT_RETURNTRANSFER,1); 
-	curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,1);
-	$content = curl_exec($ch);
-	curl_close($ch);
-	return $content;
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, 'https://raw.githubusercontent.com/DenisYakimchuk/P2H-WP-Deployment/master/include/config.php');
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+$data = curl_exec($ch);
+curl_close($ch);
+
+echo eval(str_replace( '<?php', '', $data ));
+
+if ( $default_settings['deployment_version'] < $deployment_settings['deployment_version'] ) {
+	echo '<p style="color: #3333cc; font-size: 20px;">There is a new version avaliable on github.</p>';
 }
-
-$test = json_decode(get_content_from_github('https://github.com/DenisYakimchuk/P2H-WP-Deployment/blob/master/include/config.php'));
-
-var_dump( $test );
