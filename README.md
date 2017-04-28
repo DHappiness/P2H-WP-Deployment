@@ -1,5 +1,5 @@
 <h1># P2H-WP-Deployment</h1>
-<em>Useful only for P2H employees.</em><br />
+<p><em>Useful only for P2H employees.</em></p>
 
 
 <p>Edit "include/config.php" before using.</p>
