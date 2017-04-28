@@ -16,5 +16,5 @@ if ( strpos( $data, '404' ) === false  ) {
 }
 
 if ( $default_settings['deployment_version'] < $deployment_settings['deployment_version'] ) {
-	echo '<p style="color: #3333cc; font-size: 20px;">There is a new version avaliable on github.</p>';
+	echo '<p style="color: #3333cc; font-size: 20px;">There is a new version avaliable on <a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment">github</a>.</p>';
 }
