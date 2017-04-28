@@ -1,4 +1,3 @@
-<link rel="stylesheet" type="text/css" href="./css/styles.css">
 <div class="main-settings">
   <form action="./deployment.php" method="post" enctype="multipart/form-data">
     <fieldset>
@@ -10,10 +9,6 @@
     <fieldset>
       <legend>Wordpress Settings</legend>
       <input type="text" name="sitename" placeholder="Site Name" />
-    </fieldset>
-    <fieldset>
-      <legend>Homepage HTML Template ( if exists )</legend>
-      <input type="file" name="homepage" placeholder="Home Template" />
     </fieldset>
     <input type="hidden" name="action" value="true" />
     <input type="submit" value="Execute">
