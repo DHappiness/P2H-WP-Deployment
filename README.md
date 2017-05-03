@@ -5,6 +5,8 @@
 
 <p>Edit "include/config.php" before using.</p>
 
+<p>Important: use the script only for empty staging to avoid erasing data.</p>
+
 <strong>Capabilities:</strong>
 - Downloading and installing latest WordPress version
 - Downloading and istalling ACF PRO from SVN (need credentials to be set in config.php)
