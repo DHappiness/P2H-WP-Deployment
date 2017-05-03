@@ -5,7 +5,7 @@
 
 <p>Edit "include/config.php" before using.</p>
 
-<p>Important: use the script only for empty staging to avoid erasing data.</p>
+<p>Important: use the script only for empty staging to avoid erasing any data.</p>
 
 <strong>Capabilities:</strong>
 - Downloading and installing latest WordPress version
