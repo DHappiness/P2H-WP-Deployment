@@ -170,6 +170,7 @@ if ( ! isset( $_POST['action'] ) ) {
     $db_dump = str_replace( array( 'SITENAME', 'http://siteurl', '<<userpass>>' ), array( $_POST['sitename'], $site_url, $hashed_pass ), $db_dump );
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     if ( $connection = mysqli_connect( 'localhost', ! empty( $_POST['dbuser'] ) ? $_POST['dbuser'] : $_POST['dbname'], $_POST['password'], $_POST['dbname'] ) ) {
+      mysqli_query( $connection, "DROP TABLE `wp_commentmeta`, `wp_comments`, `wp_links`, `wp_options`, `wp_postmeta`, `wp_posts`, `wp_termmeta`, `wp_terms`, `wp_term_relationships`, `wp_term_taxonomy`, `wp_usermeta`, `wp_users`;" );
       $lines = explode( "\n", $db_dump );
       $templine = '';
       // Loop through each line
