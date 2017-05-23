@@ -1,7 +1,7 @@
 <?php include_once( 'config.inc' );
 global $deployment_settings;
 if ( empty( $deployment_settings['svn_username'] ) || empty( $deployment_settings['svn_password'] ) ) {
-	echo '<p style="color:red; font-size: 22px;">Settings is not fully configured! Go to include/config.php and setup all the required data.</p>';
+	echo '<p class="error">Settings is not fully configured! Go to include/config.php and setup all the required data.</p>';
 }
 $default_settings = $deployment_settings;
 
@@ -16,5 +16,5 @@ if ( strpos( $data, '404' ) === false  ) {
 }
 
 if ( $default_settings['deployment_version'] < $deployment_settings['deployment_version'] ) {
-	echo '<p style="color: #3333cc; font-size: 20px;">There is a new version avaliable on <a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment" target="_blank">github</a>.</p>';
+	echo '<p class="new-version">There is a new version avaliable on <a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment" target="_blank">github</a>.</p>';
 }
