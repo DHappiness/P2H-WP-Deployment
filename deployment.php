@@ -11,7 +11,7 @@ if ( ! isset( $_POST['action'] ) ) {
   include_once( 'include/settings-form.php' );
 } else {
   
-  include_once( 'include/settings-form.php' );
+  //include_once( 'include/settings-form.php' );
   
   // upload and unpack latest wordpress version
   include_once( 'include/BetterZipArchive.php' );
@@ -170,7 +170,7 @@ if ( ! isset( $_POST['action'] ) ) {
     $db_dump = str_replace( array( 'SITENAME', 'http://siteurl', '<<userpass>>' ), array( $_POST['sitename'], $site_url, $hashed_pass ), $db_dump );
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     if ( $connection = mysqli_connect( 'localhost', ! empty( $_POST['dbuser'] ) ? $_POST['dbuser'] : $_POST['dbname'], $_POST['password'], $_POST['dbname'] ) ) {
-      mysqli_query( $connection, "DROP TABLE `wp_commentmeta`, `wp_comments`, `wp_links`, `wp_options`, `wp_postmeta`, `wp_posts`, `wp_termmeta`, `wp_terms`, `wp_term_relationships`, `wp_term_taxonomy`, `wp_usermeta`, `wp_users`;" );
+      mysqli_query( $connection, "DROP TABLE IF EXISTS `wp_commentmeta`, `wp_comments`, `wp_links`, `wp_options`, `wp_postmeta`, `wp_posts`, `wp_termmeta`, `wp_terms`, `wp_term_relationships`, `wp_term_taxonomy`, `wp_usermeta`, `wp_users`;" );
       $lines = explode( "\n", $db_dump );
       $templine = '';
       // Loop through each line
@@ -193,10 +193,53 @@ if ( ! isset( $_POST['action'] ) ) {
     }
   }
   
+  
+  // add pages to WP
+  if ( ! empty( $_POST['pages'] ) ) {
+    include_once( 'wp-load.php' );
+    include_once( 'include/LoremIpsum.php' );
+    
+    function recursive_pages_creation( $pages, $parent = 0 ) {
+      $lipsum = new LoremIpsum();
+      $default_page_data = array(
+          'post_type'   => 'page',
+          'post_parent' => $parent,
+          'post_status' => 'publish',
+          'post_author' => 1,
+      );
+      foreach( $pages as $page ) {
+        if ( ! empty( $page['title'] ) ) {
+          $current_page_data = array(
+            'post_title'   => wp_strip_all_tags( $page['title'] ),
+            'post_slug'    => sanitize_title( ( $page['title'] ) ),
+            'post_content' => $lipsum->paragraphs( 3, 'p' ),
+          );
+          $page_data = array_merge( $default_page_data, $current_page_data );
+          $new_page_id = wp_insert_post( $page_data );
+          if ( isset( $page['subpages'] ) && is_array( $page['subpages'] ) ) {
+            recursive_pages_creation( $page['subpages'], $new_page_id );
+          }
+        }
+      }
+    }
+    
+    if ( is_array( $_POST['pages'] ) ) {
+      recursive_pages_creation( $_POST['pages'] );
+      update_option( 'page_on_front', 2 );
+      global $wp_rewrite;
+      //Write the rule
+      $wp_rewrite->set_permalink_structure('/%postname%/');
+      //Set the option
+      update_option( "rewrite_rules", FALSE );
+      //Flush the rules and tell it to write htaccess
+      $wp_rewrite->flush_rules( true );
+    }
+  }
+  
 
   
   // delete deployment files
-  if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
+  /*if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
     
     $it = new RecursiveDirectoryIterator('include', RecursiveDirectoryIterator::SKIP_DOTS);
     $files = new RecursiveIteratorIterator($it,
@@ -213,7 +256,7 @@ if ( ! isset( $_POST['action'] ) ) {
     unlink('deployment.php');
   } else {
     echo "\nDeployment files aren't deleted!";
-  }
+  }*/
   
 }
 
