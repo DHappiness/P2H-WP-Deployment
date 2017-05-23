@@ -239,7 +239,7 @@ if ( ! isset( $_POST['action'] ) ) {
 
   
   // delete deployment files
-  /*if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
+  if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
     
     $it = new RecursiveDirectoryIterator('include', RecursiveDirectoryIterator::SKIP_DOTS);
     $files = new RecursiveIteratorIterator($it,
@@ -256,7 +256,7 @@ if ( ! isset( $_POST['action'] ) ) {
     unlink('deployment.php');
   } else {
     echo "\nDeployment files aren't deleted!";
-  }*/
+  }
   
 }
 
