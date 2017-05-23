@@ -13,7 +13,7 @@
 - Downloading base theme from SVN or from "include" folder of deployment ( in case you have own configured theme ) and naming it like project is.
 - Fast creating of default project pages with automatically generated lorem ipsum content.
 - Automatically setting up of /%postname%/ permalinks and refreshing rewrite rules.
-- <span style="color: red;">Deployment files are automatically deleting after script is done. So be attentive and don't forget to copy generated credentials at the end.</span>
+- <em>Deployment files are automatically deleting after script is done. So be attentive and don't forget to copy generated credentials at the end.</em>
 
 
 <strong>Future Features:</strong>
