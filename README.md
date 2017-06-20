@@ -18,6 +18,7 @@
 
 <strong>Future Features:</strong>
 - Automated creation of Custom Post Types and Custom Taxonomies
+- Creating Main Menu from selected pages.
 - Uploading of homepage html template to parse it for further including to theme templates.
 - Automatically downloading of other wordpress plugins just by adding of a plugin url to the list of downloadable plugins.
 - Fast basical creating of ACF fields.
