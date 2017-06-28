@@ -55,7 +55,7 @@ input[type="file"],
 input[type="text"] {padding: 4px 7px;}
 
 
-.page .page {margin-left: 1em;}
+.clone-elements .item .item {margin-left: 1em;}
 
 .new-version {
 	color: #3333cc; 
@@ -66,4 +66,9 @@ input[type="text"] {padding: 4px 7px;}
 	color:red; 
 	font-size: 22px;
 	margin-bottom: 15px;
+}
+
+input.error {
+	box-shadow: 0 0 3px #ff0000;
+	border: solid 2px transparent;
 }
