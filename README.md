@@ -3,7 +3,7 @@
 
 <p>Current Versing: 0.5 BETA</p>
 
-<p>Edit "include/config.php" before using.</p>
+<p>Edit "include/config.inc" before using.</p>
 
 <p>Important: use the script only for empty staging to avoid erasing any data.</p>
 
