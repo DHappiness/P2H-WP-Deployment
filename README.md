@@ -13,13 +13,14 @@
 - Downloading base theme from SVN or from "include" folder of deployment ( in case you have own configured theme ) and naming it like project is.
 - Fast creating of default project pages with automatically generated lorem ipsum content.
 - Automatically setting up of /%postname%/ permalinks and refreshing rewrite rules.
-- <em>Deployment files are automatically deleting after script is done. So be attentive and don't forget to copy generated credentials at the end.</em>
+- <em>Deployment files are automatically deleting after script is done(if server has "staging restrictions" file). So be attentive and don't forget to copy generated credentials at the end.</em>
 - Automated creation of Custom Post Types and Custom Taxonomies using singular name of entity.
 
 
 <strong>Future Features:</strong>
 - Creating Main Menu from selected pages.
 - Uploading of homepage html template to parse it for further including to theme templates.
-- Automatically downloading of other wordpress plugins just by adding of a plugin url to the list of downloadable plugins.
+- Automated adding of template files for pages.
+- Automatically downloading and installation of other wordpress plugins just by adding of a plugin url to the list of downloadable plugins.
 - Fast basical creating of ACF fields.
 - Automated authentication to admin account after deployment is done.
