@@ -9,8 +9,8 @@
 
 <strong>Capabilities:</strong>
 - Downloading and installing latest WordPress version
-- Downloading and istalling ACF PRO from SVN (need credentials to be set in config.php)
-- Downloading base theme from SVN or from "include" folder of deployment ( in case you have own configured theme ) and naming it like project is.
+- Downloading and installing ACF PRO from SVN (need credentials to be set in config.php)
+- Downloading base theme from SVN or from the "include" folder of deployment ( in case you have own configured theme ) and naming it like project is.
 - Fast creating of default project pages with automatically generated lorem ipsum content.
 - Automatically setting up of /%postname%/ permalinks and refreshing rewrite rules.
 - <em>Deployment files are automatically deleting after script is done(if server has "staging restrictions" file). So be attentive and don't forget to copy generated credentials at the end.</em>
