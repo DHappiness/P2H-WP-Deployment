@@ -1,26 +1,33 @@
-<?php ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-set_time_limit( 3600 );
+<?php include_once( 'include/ajax-requests.php' );
 
+global $deployment_result;
+$deployment_result = '';
 // include configuration file
 include( 'include/config.inc' );
 
-if ( ! isset( $_POST['action'] ) ) {
+if ( ! isset( $_POST['deploy'] ) ) {
+  // check for the latest version
   include_once( 'include/updater.php' );
-  include_once( 'include/settings-form.php' );
 } else {
   
-  //include_once( 'include/settings-form.php' );
+  // helper functions
+  include_once( 'include/functions.php' );
   
-  // upload and unpack latest wordpress version
+  // extended php ZipArchive Class
   include_once( 'include/BetterZipArchive.php' );
   
+  // upload and unpack latest wordpress version
   $wordpress_url = 'https://wordpress.org/latest.zip';
   $zip_file = basename( $wordpress_url );
   $current_path = dirname(__FILE__);
   
-  file_put_contents($zip_file, fopen($wordpress_url, 'r'));
+  if ( $wordpress_zip = @fopen($wordpress_url, 'r') ) {  
+    file_put_contents($zip_file, $wordpress_zip );
+  } else {
+    $deployment_result .= 'ERROR: Can\'t get a wordpress archive.';
+    include_once( 'include/settings-form.php' );
+    exit();
+  }
   
   $zip = new BetterZipArchive;
   $res = $zip->open($zip_file);
@@ -29,50 +36,13 @@ if ( ! isset( $_POST['action'] ) ) {
     $zip->close();
     unlink($zip_file);
   } else {
-    echo 'ups!';
+    $deployment_result .= 'ERROR: Can\'t unzipp WordPress archive!';
+    include_once( 'include/settings-form.php' );
+    exit();
   }
   
-  /**
-  * Recursively copy files from one directory to another
-  * 
-  * @param String $src - Source of files being moved
-  * @param String $dest - Destination of files being moved
-  */
- function rcopy($src, $dest){
- 
-     // If source is not a directory stop processing
-     if(!is_dir($src)) return false;
- 
-     // If the destination directory does not exist create it
-     if(!is_dir($dest)) { 
-         if(!mkdir($dest)) {
-             // If the destination directory could not be created stop processing
-             return false;
-         }    
-     }
- 
-     // Open the source directory to read in files
-     $i = new DirectoryIterator($src);
-     foreach($i as $f) {
-         if($f->isFile()) {
-             copy($f->getRealPath(), "$dest/" . $f->getFilename());
-         } else if(!$f->isDot() && $f->isDir()) {
-             rcopy($f->getRealPath(), "$dest/$f");
-         }
-     }
- }
- 
   // delete default themes
-  $it = new RecursiveDirectoryIterator('wp-content/themes', RecursiveDirectoryIterator::SKIP_DOTS);
-  $files = new RecursiveIteratorIterator($it,
-               RecursiveIteratorIterator::CHILD_FIRST);
-  foreach($files as $file) {
-      if ($file->isDir()){
-          rmdir($file->getRealPath());
-      } else {
-          unlink($file->getRealPath());
-      }
-  }
+  recursive_files_remover( $current_path . '/wp-content/themes', true );
   
   
   
@@ -85,44 +55,25 @@ if ( ! isset( $_POST['action'] ) ) {
   
   $custom_base_theme_location = 'include/base';
   
-  function recursive_svn_uploading( $url, $upload_path, $deployment_settings ) {
-    
-    $context = stream_context_create(array (
-        'http' => array (
-            'header' => 'Authorization: Basic ' . base64_encode( $deployment_settings['svn_username'] . ":" . $deployment_settings['svn_password'] )
-        )
-    ));
-    if ( $data = file_get_contents($url, false, $context) ) :
-    
-      $files = new SimpleXMLElement( $data );
-      if ( $files->index->file ) {
-        mkdir( $upload_path, 0755, true );
-        foreach( $files->index->file as $file ) {
-          $file = (array) $file;
-          file_put_contents( $upload_path . $file['@attributes']['name'], fopen( $url . $file['@attributes']['name'], 'r', false, $context ) );
-        }
-      }
-      if ( $files->index->dir ) {
-        foreach( $files->index->dir as $dir ) {
-          $dir = (array) $dir;
-          recursive_svn_uploading( $url . $dir['@attributes']['href'], $upload_path . $dir['@attributes']['href'], $deployment_settings );
-        }
-      }
-      
-    endif;
-  }
-  if ( in_array( 'acf', $deployment_settings['install_plugins'] ) ) {
-    recursive_svn_uploading( $acf_svn_url, $acf_path, $deployment_settings );
-  }
-  if ( is_dir( $custom_base_theme_location ) ) {
+  if ( file_exists( $custom_base_theme_location ) ) {
+    $deployment_result .= 'Was used custom base theme.<br />';
     rcopy( $custom_base_theme_location, $base_theme_path );
   } else {
-    recursive_svn_uploading( $base_theme_svn_url, $base_theme_path, $deployment_settings );
+    $deployment_result .= 'Was used base theme from SVN.<br />';
+    recursive_svn_uploading( $base_theme_svn_url, $base_theme_path );
   }
   
   rename( $base_theme_path . 'languages/base.pot', str_replace( 'base.pot', $_POST['dbname'] . '.pot', $base_theme_path . 'languages/base.pot' ) );
   $new_theme_path = str_replace( '/base/', '/' . $_POST['dbname'] . '/', $base_theme_path );
   rename( $base_theme_path, $new_theme_path );
+  
+  if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+    recursive_svn_uploading( $acf_svn_url, $acf_path );
+    $base_theme_functions_default = file_get_contents( $new_theme_path . 'inc/default.php' );
+    $base_theme_functions_default = str_replace( '//acf theme', '/*acf theme', $base_theme_functions_default );
+    file_put_contents( $new_theme_path . 'inc/default.php', $base_theme_functions_default );
+  }
+  
   if ( ! file_exists( $new_theme_path . 'style.css' ) ) {
     $style_css_content_sign = 'LyoNClRoZW1lIE5hbWU6IDw8QmFzZT4+DQpBdXRob3I6IEFub255bW91cw0KQXV0aG9yIFVSSToNClZlcnNpb246IDENCkRlc2NyaXB0aW9uOiBCYXNlIHRoZW1lIGZvciBXb3JkcHJlc3MNCkxpY2Vuc2U6IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHYyIG9yIGxhdGVyDQpMaWNlbnNlIFVSSTogaHR0cDovL3d3dy5nbnUub3JnL2xpY2Vuc2VzL2dwbC0yLjAuaHRtbA0KVGV4dCBEb21haW46IDw8YmFzZT4+DQpUYWdzOiBvbmUtY29sdW1uLCB0d28tY29sdW1ucw0KVGhlbWUgVVJJOg0KKi8=';
     $style_css_content = str_replace( array( '<<base>>', '<<Base>>' ), array( $_POST['dbname'], $_POST['sitename'] ), base64_decode($style_css_content_sign) );
@@ -160,18 +111,9 @@ if ( ! isset( $_POST['action'] ) ) {
     file_put_contents( 'wp-config.php', $edited_wpconfig );
   }
   
-    //display installed user credentials
-  function randomPassword() {
-      $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-      $pass = array(); //remember to declare $pass as an array
-      $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
-      for ($i = 0; $i < 8; $i++) {
-          $n = rand(0, $alphaLength);
-          $pass[] = $alphabet[$n];
-      }
-      return implode($pass); //turn the array into a string
-  }
   
+  
+  //user credentials  
   $user_name = 'admin';
   $user_email = 'admin@email.com';
   $user_password = randomPassword();
@@ -180,14 +122,14 @@ if ( ! isset( $_POST['action'] ) ) {
   $wp_hasher = new PasswordHash(8, true); 
   $hashed_pass = $wp_hasher->HashPassword( trim( $user_password ) );
   
-  echo "WP User: $user_name<br />User Password: $user_password<br />User Email: $user_email<br />";
+  $deployment_result .= "<strong>WP User:</strong> $user_name<br /><strong>User Password:</strong> $user_password<br /><strong>User Email:</strong> $user_email<br />";
 
   // import default db dump
   if ( $db_dump = file_get_contents( $current_path . '/include/default-db.sql' ) ) {
     $site_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
     $db_dump = str_replace( array( 'SITENAME', 'http://siteurl', '<<userpass>>', '<<template>>', '<<stylesheet>>' ), array( $_POST['sitename'], $site_url, $hashed_pass, $_POST['dbname'], $_POST['dbname'] ), $db_dump );
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-    if ( $connection = mysqli_connect( 'localhost', ! empty( $_POST['dbuser'] ) ? $_POST['dbuser'] : $_POST['dbname'], $_POST['password'], $_POST['dbname'] ) ) {
+    if ( $connection = mysqli_connect( ( ( $_POST['host'] ) ? $_POST['host'] : 'localhost' ), ! empty( $_POST['dbuser'] ) ? $_POST['dbuser'] : $_POST['dbname'], $_POST['password'], $_POST['dbname'] ) ) {
       mysqli_query( $connection, "DROP TABLE IF EXISTS `wp_commentmeta`, `wp_comments`, `wp_links`, `wp_options`, `wp_postmeta`, `wp_posts`, `wp_termmeta`, `wp_terms`, `wp_term_relationships`, `wp_term_taxonomy`, `wp_usermeta`, `wp_users`;" );
       $lines = explode( "\n", $db_dump );
       $templine = '';
@@ -207,12 +149,70 @@ if ( ! isset( $_POST['action'] ) ) {
             $templine = '';
         }
       }
-      echo "Tables imported successfully";
+      $deployment_result .= "Database imported successfully.<br/>";
     }
   }
   
+  
+  $useremail = $user_email;
   // load WP API
+  define( 'WP_USE_THEMES', false );
+  define( 'COOKIE_DOMAIN', false );
+  define( 'DISABLE_WP_CRON', true );
+  if( ! session_id() ) {session_start();}
   include_once( 'wp-load.php' );
+  
+  
+  // install selected plugins
+  if ( ! empty( $_POST['plugins'] ) ) {
+    require_once( $current_path . "/wp-admin/includes/plugin.php" );
+    if ( ! file_exists( 'plugins' ) ) {
+      mkdir( 'plugins' );
+    }
+    foreach( $_POST['plugins'] as $plugin ) {
+      if ( $plugin == 'acf' ) {
+        if ( run_activate_plugin( 'advanced-custom-fields-pro/acf.php' ) ) {
+          if ( ! file_exists( $new_theme_path . 'acf-json' ) ) {
+            mkdir( $new_theme_path . 'acf-json' );
+          }
+          $deployment_result .= '<br/>Plugin <strong>"Advanced Custom Fields PRO"</strong> was successfully installed and activated.';
+        }
+        continue;
+      }
+      
+      $plugin_url = $plugins[$plugin]['url'];
+      $zip_file = basename( $plugin_url );
+      $path_to_plugins = '/wp-content/plugins/';
+      
+      if ( ! @file_put_contents( 'plugins/' . $zip_file, fopen( $plugin_url, 'r' ) ) ) {
+        $deployment_result .= '<br/>Uploadin of Plugin <strong>"' . $plugins[$plugin]['label'] . '"</strong> faild.';
+      }
+      
+      $zip = new BetterZipArchive;
+      $res = $zip->open( 'plugins/' . $zip_file );
+      if ($res === TRUE) {
+        $zip->extractTo( $current_path . $path_to_plugins );
+        $zip->close();
+      }
+      
+      wp_cache_init();
+      
+      if ( run_activate_plugin( $plugin ) ) {
+        $deployment_result .= '<br/>Plugin <strong>"' . $plugins[$plugin]['label'] . '"</strong> was successfully installed and activated.';
+      }
+      
+    }
+    
+    wp_cache_flush();
+    
+    // delete uploaded plugins
+    recursive_files_remover( 'plugins' );
+    
+    $deployment_result .= '<br />';
+    
+  }
+  
+  
   
   // create file with cpt and taxonomy registration
   if ( ! empty( $_POST['cpt'] ) ) {
@@ -223,18 +223,32 @@ if ( ! isset( $_POST['action'] ) ) {
     include_once( 'include/Inflect.php' );
     $inflector = new Inflector();
     
-    $entities = '';   
+    $entities = '';
     
-    foreach( $_POST['cpt'] as $cpt ) {
+    foreach( $_POST['cpt'] as $cpt_key => $cpt ) {
       if ( ! empty( $cpt['title'] ) ) {
         $plural_cpt = $inflector->pluralize( $cpt['title'] );
         $entities .= str_replace( array( '<<book>>', 'Books', 'Book', 'books', 'book' ), array( sanitize_key( $cpt['title'] ), ucfirst( $plural_cpt ), ucfirst( $cpt['title'] ), strtolower( $plural_cpt ), strtolower( $cpt['title'] ) ), $cpt_code ) . "\n\n";
+        if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+          $fields = generate_acf_fields_code( 'cpt_' . $cpt_key );
+          if ( ! empty( $fields ) ) {
+            create_acf_fields_group( $cpt['title'], 'post_type|' . sanitize_key( $cpt['title'] ), $fields );
+          }
+        }
         if ( isset( $cpt['taxonomies'] ) && ! empty( $cpt['taxonomies'] ) ) {
-          foreach( $cpt['taxonomies'] as $taxonomy ) {
+          foreach( $cpt['taxonomies'] as $tax_key => $taxonomy ) {
             if ( ! empty( $taxonomy['title'] ) ) {
               $plural_tax = $inflector->pluralize( $taxonomy['title'] );
               $taxonomy_slug = strtolower( $taxonomy['title'] ) == 'category' ? sanitize_key( $cpt['title'] . '_cat' ) : sanitize_key( $taxonomy['title'] );
               $entities .= str_replace( array( 'Genres', 'Genre', 'genre', 'book' ), array( ucfirst( $plural_tax ), ucfirst( $taxonomy['title'] ), $taxonomy_slug, sanitize_key( $cpt['title'] ) ), $taxonomy_code ) . "\n\n";
+              
+              if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+                $fields = generate_acf_fields_code( 'cpt_' . $cpt_key . '_taxonomies_' . $tax_key );
+                if ( ! empty( $fields ) ) {
+                  create_acf_fields_group( $taxonomy['title'], 'taxonomy|' . sanitize_key( $taxonomy['title'] ), $fields );
+                }
+              }
+              
             }
           }
         }
@@ -242,7 +256,7 @@ if ( ! isset( $_POST['action'] ) ) {
     }
     
     if ( $entities ) {
-      $entities_code = "<?php //Registration of Custom Post Types and Custom Taxonomies\n\nif ( ! function_exists( 'init_entities' ) ) {\n\n\tfunction init_entities() {\n\n$entities\n\t}\n\tadd_action( 'init', 'init_entities' );\n}";
+      $entities_code = "<?php // Registration of Custom Post Types and Custom Taxonomies\n\nif ( ! function_exists( 'init_entities' ) ) {\n\n\tfunction init_entities() {\n\n$entities\n\t}\n\tadd_action( 'init', 'init_entities' );\n}";
       $entities_file_exists = file_exists( $new_theme_path . 'inc/cpt.php' );
       file_put_contents( $entities_file_exists ? $new_theme_path . 'inc/cpt.php' : $new_theme_path . 'inc/entities.php', $entities_code );
       if ( ! $entities_file_exists ) {
@@ -258,72 +272,86 @@ if ( ! isset( $_POST['action'] ) ) {
   if ( ! empty( $_POST['pages'] ) ) {
     include_once( 'include/LoremIpsum.php' );
     
-    function recursive_pages_creation( $pages, $parent = 0 ) {
-      $lipsum = new LoremIpsum();
-      $default_page_data = array(
-          'post_type'   => 'page',
-          'post_parent' => $parent,
-          'post_status' => 'publish',
-          'post_author' => 1,
-      );
-      foreach( $pages as $page ) {
-        if ( ! empty( $page['title'] ) ) {
-          $current_page_data = array(
-            'post_title'   => wp_strip_all_tags( $page['title'] ),
-            'post_slug'    => sanitize_title( ( $page['title'] ) ),
-            'post_content' => $lipsum->paragraphs( 3, 'p' ),
+    if ( is_array( $_POST['pages'] ) ) {
+      
+      recursive_pages_creation( $_POST['pages'] );
+      
+      // setup homepage and set it as front page
+      if ( isset( $_POST['homepage'] ) && $_POST['homepage'] == '0' ) {
+        $homepage_id = 2;
+        update_option( 'show_on_front', 'page' );
+        update_option( 'page_on_front', $homepage_id );
+        wp_update_post( array( 'ID' => $homepage_id, 'post_title' => 'Home' ) );
+        update_post_meta( $homepage_id, '_wp_page_template', 'pages/template-home.php' );
+        if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+          $fields = generate_acf_fields_code( 'home' );
+          if ( ! empty( $fields ) ) {
+            create_acf_fields_group( 'Homepage fields', 'page_template|pages/template-home.php', $fields );
+          }
+        }
+      } else {
+        if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+          $blog_page_data = array(
+            'post_type'    => 'page',
+            'post_title'   => 'Blog',
+            'post_slug'    => 'blog',
+            'post_status'  => 'publish',
+            'post_author'  => 1,
           );
-          $page_data = array_merge( $default_page_data, $current_page_data );
-          $new_page_id = wp_insert_post( $page_data );
-          if ( isset( $page['subpages'] ) && is_array( $page['subpages'] ) ) {
-            recursive_pages_creation( $page['subpages'], $new_page_id );
+          $blog_page_id = wp_insert_post( $blog_page_data );
+          update_option( 'show_on_front', 'page' );
+          update_option( 'page_for_posts', $blog_page_id );
+          $fields = generate_acf_fields_code( 'home' );
+          if ( ! empty( $fields ) ) {
+            create_acf_fields_group( 'Blog page fields', 'page_type|posts_page', $fields );
           }
         }
       }
-    }
-    
-    if ( is_array( $_POST['pages'] ) ) {
-      recursive_pages_creation( $_POST['pages'] );
-      $homepage_id = 2;
-      update_option( 'show_on_front', 'page' );
-      update_option( 'page_on_front', $homepage_id );
-      wp_update_post( array( 'ID' => $homepage_id, 'post_title' => 'Home' ) );
-      update_post_meta( $homepage_id, '_wp_page_template', 'pages/template-home.php' );
+      
+      if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+        $fields = generate_acf_fields_code( 'options' );
+        if ( ! empty( $fields ) ) {
+          create_acf_fields_group( 'Options Page fields', 'options_page|acf-options-theme-options', $fields );
+          file_put_contents( $new_theme_path . 'inc/default.php', str_replace( '/*acf theme', '//acf theme', $base_theme_functions_default ) );
+        }
+      }
+      
+      $deployment_result .= '<br />All pages with appropriate templates has been created.<br />';
       
       // UPDATE PERMALINKS
       global $wp_rewrite;
       $wp_rewrite->set_permalink_structure('/%postname%/');
       update_option( "rewrite_rules", false );
       $wp_rewrite->flush_rules( true );
+      $deployment_result .= 'Permalinks structure changed to <strong>/%postname%/</strong><br />';
     }
-  }
+  }  
   
   
-  // delete deployment files
-  if ( file_exists( sys_get_temp_dir() . '/staging-restrictions.php' ) ) {
-    
-    $it = new RecursiveDirectoryIterator('include', RecursiveDirectoryIterator::SKIP_DOTS);
-    $files = new RecursiveIteratorIterator($it,
-                 RecursiveIteratorIterator::CHILD_FIRST);
-    foreach($files as $file) {
-        if ($file->isDir()){
-            rmdir($file->getRealPath());
-        } else {
-            unlink($file->getRealPath());
-        }
+  // authentificate admin
+  if( ! empty( $useremail ) ) {
+    if ( $user = get_user_by( 'email', $useremail ) ) {
+      $user_id = $user->ID;
+      $user_login = $user->user_login;
+      wp_set_current_user( $user_id, $user_login );
+      wp_clear_auth_cookie();
+      wp_set_auth_cookie( $user_id, true );
+      do_action( 'wp_login', $user_login );
+      $deployment_result .= '<br />You\'re now logged in as <strong>' . $user_name . '</strong>';
     }
-    rmdir('include');
-    
-    unlink('deployment.php');
-    
-    echo '<br /> Deployment files are successfully deleted.';
-    
   } else {
-    echo "<br /> Deployment files aren't deleted!";
+    $deployment_result .= '<br/>User Email is empty';
   }
+  
+  $deployment_result .= '<br /> <a href="'. get_admin_url() .'" target="_blank">Go to WordPress admin panel.</a>';
   
 }
 
-sleep(1);
-$time = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
-echo "<br /> Process Time: {$time}";
+// main form
+include_once( 'include/settings-form.php' );
+
+// delete deployment files
+if ( isset( $_POST['deploy'] ) && $deployment_settings['delete_after_execution'] ) {
+  recursive_files_remover( 'include' );
+  unlink('deployment.php');
+}
