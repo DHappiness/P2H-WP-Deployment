@@ -7,8 +7,8 @@ set_time_limit( 3600 );
 
 // General Configuration
 $deployment_settings = array(
-  'svn_username' => 'dyakimchuk', /* required */
-  'svn_password' => 'MpCfhqGg2r', /* required */
+  'svn_username' => '', /* required */
+  'svn_password' => '', /* required */
   'install_plugins' => array( 'acf' ),
   'deployment_version' => '1.0', /* Don not change */
   'delete_after_execution' => true,
