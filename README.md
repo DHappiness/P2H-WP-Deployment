@@ -1,9 +1,9 @@
 <h1># P2H-WP-Deployment</h1>
 <p><em>Useful only for P2H employees.</em></p>
 
-<p>Current Version: 0.5 BETA</p>
+<p>Current Version: 1.0</p>
 
-<p>Edit "include/config.inc" before using.</p>
+<p>Edit "include/config.inc" before using. You need to setup your SVN Credentials at first.</p>
 
 <p>Important: use the script only for empty staging to avoid erasing any data.</p>
 
@@ -15,12 +15,12 @@
 - Automatically setting up of /%postname%/ permalinks and refreshing rewrite rules.
 - <em>Deployment files are automatically deleting after script is done(if server has "staging restrictions" file). So be attentive and don't forget to copy generated credentials at the end.</em>
 - Automated creation of Custom Post Types and Custom Taxonomies using singular name of entity.
+- Automated adding of template files for pages
+- Automatically downloading and installation of wordpress plugins just by selecting it in the list of downloadable plugins.
+- Fast basical creating of ACF fields.
+- Automated authentication to admin account after deployment is done.
 
 
 <strong>Future Features:</strong>
 - Creating Main Menu from selected pages.
 - Uploading of homepage html template to parse it for further including to theme templates.
-- Automated adding of template files for pages.
-- Automatically downloading and installation of other wordpress plugins just by adding of a plugin url to the list of downloadable plugins.
-- Fast basical creating of ACF fields.
-- Automated authentication to admin account after deployment is done.
