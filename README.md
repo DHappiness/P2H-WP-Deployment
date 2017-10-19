@@ -24,3 +24,4 @@
 <strong>Future Features:</strong>
 - Creating Main Menu from selected pages.
 - Uploading of homepage html template to parse it for further including to theme templates.
+- Field to add a theme screenshot.
