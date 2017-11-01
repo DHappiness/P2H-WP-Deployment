@@ -2,6 +2,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+date_default_timezone_set('UTC');
 set_time_limit( 3600 );
 
 
@@ -10,7 +11,7 @@ $deployment_settings = array(
   'svn_username' => '', /* required */
   'svn_password' => '', /* required */
   'install_plugins' => array( 'acf' ),
-  'deployment_version' => '1.0', /* Don not change */
+  'deployment_version' => '1.1', /* Don not change */
   'delete_after_execution' => true,
 );
 
@@ -73,6 +74,14 @@ $plugins = array(
 		'label' => 'MailPoet 2',
 		'url' => $plugins_url . 'wysija-newsletters.latest-stable.zip'
 	),
+	'dynamic-widgets/dynamic-widgets.php' => array(
+		'label' => 'Dynamic Widgets',
+		'url' => $plugins_url . 'dynamic-widgets.latest-stable.zip'
+	),
+	'widget-logic/widget-logic.php' => array(
+		'label' => 'Widget Logic',
+		'url' => $plugins_url . 'widget-logic.latest-stable.zip'
+	),
 	'all-in-one-seo-pack/all_in_one_seo_pack.php' => array(
 		'label' => 'All in One SEO Pack',
 		'url' => $plugins_url . 'all-in-one-seo-pack.latest-stable.zip'
@@ -93,5 +102,8 @@ $plugins = array(
 		'label' => 'SVG Support',
 		'url' => $plugins_url . 'svg-support.latest-stable.zip'
 	),
-	
+	'theme-check/theme-check.php' => array(
+		'label' => 'Theme Check',
+		'url' => $plugins_url . 'theme-check.latest-stable.zip'
+	),
 );

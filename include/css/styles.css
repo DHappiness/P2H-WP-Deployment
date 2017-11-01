@@ -100,12 +100,16 @@ option {font-family: Questrial;}
 input[type="text"],
 input[type="file"],
 input[type="checkbox"] {
-	margin: 0 5px 15px 0;
+	margin: 0 5px 10px 0;
 	padding: 4px 7px;
+}
+input[type="checkbox"] {
+	margin-bottom: 12px;
+	vertical-align: -webkit-baseline-middle;
 }
 select{padding: 4px 7px;}
 
-fieldset {margin-bottom: 20px;}
+fieldset {margin-bottom: 15px;}
 
 input[type=submit],
 button {
@@ -126,7 +130,7 @@ button:hover {opacity: 0.85;}
 
 #main {
 	width: 1170px;
-	padding: 15px;
+	padding: 10px;
 	margin: 0 auto;
 }
 .main-settings {padding-left: 25px;}
@@ -155,6 +159,12 @@ button:hover {opacity: 0.85;}
 .clone-elements .field-holder:hover .add-acf-group {opacity: 1;}
 .clone-elements .field-holder:hover .add-acf-group:hover {opacity: 0.85;}
 .clone-elements .item input {margin-bottom: 0;}
+
+.unify-pages {
+	font-size: 16px;
+	font-weight: normal;
+}
+.unify-pages.delete {color: #dc143c;}
 
 label.template {
     display: inline-block;

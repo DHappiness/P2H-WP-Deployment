@@ -4,6 +4,7 @@ if ( empty( $deployment_settings['svn_username'] ) || empty( $deployment_setting
 	$deployment_result .= '<p class="settings-error">Settings is not fully configured! Go to include/config.php and setup all the required data.</p>';
 }
 $default_settings = $deployment_settings;
+$default_plugins = $plugins;
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, 'https://raw.githubusercontent.com/DenisYakimchuk/P2H-WP-Deployment/master/include/config.inc');
@@ -17,7 +18,14 @@ if ( strpos( $data, '404' ) === false  ) {
 }
 
 if ( $default_settings['deployment_version'] < $deployment_settings['deployment_version'] ) {
-	$deployment_result .= '<p class="new-version">There is a new version avaliable on <a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment" target="_blank">github</a>.</p>';
+	if ( ! isset( $_COOKIE['skip_updater'] ) ) {
+		$deployment_result .= '<p class="new-version">There is a new version avaliable on <a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment" target="_blank">github</a>.</p>
+		<p><a href="#" class="use-current">Continue with current version!</a>';
+	}
+} else {
+	unset( $_COOKIE['skip_updater'] );
+	setcookie( 'skip_updater', null, -1, '/' );
 }
 
 $deployment_settings = $default_settings;
+$plugins = $default_plugins;

@@ -42,7 +42,9 @@ if ( ! isset( $_POST['deploy'] ) ) {
   }
   
   // delete default themes
-  recursive_files_remover( $current_path . '/wp-content/themes', true );
+  if ( isset( $_POST['delete_themes'] ) ) {
+    recursive_files_remover( $current_path . '/wp-content/themes', true, array( 'index.php' ) );
+  }
   
   
   
@@ -63,10 +65,23 @@ if ( ! isset( $_POST['deploy'] ) ) {
     recursive_svn_uploading( $base_theme_svn_url, $base_theme_path );
   }
   
+  // raname theme and theme files
   rename( $base_theme_path . 'languages/base.pot', str_replace( 'base.pot', $_POST['dbname'] . '.pot', $base_theme_path . 'languages/base.pot' ) );
   $new_theme_path = str_replace( '/base/', '/' . $_POST['dbname'] . '/', $base_theme_path );
   rename( $base_theme_path, $new_theme_path );
   
+  // change language domain
+  $theme_files = glob( $new_theme_path.'*.php' );
+  $scaned_theme_folder = scandir($new_theme_path);
+  replace_string_in_selected_files( $theme_files, "'base'", "'" . $_POST['dbname'] . "'" );
+  foreach( $scaned_theme_folder as $file_or_dir ) {
+    if ( is_dir( $new_theme_path . $file_or_dir ) ) {
+      $files_in_folder = glob( $new_theme_path . $file_or_dir . '/*.php' );
+      replace_string_in_selected_files( $files_in_folder, "'base'", "'" . $_POST['dbname'] . "'" );
+    }
+  }
+  
+  // uploading acf and further needed manipulation
   if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
     recursive_svn_uploading( $acf_svn_url, $acf_path );
     $base_theme_functions_default = file_get_contents( $new_theme_path . 'inc/default.php' );
@@ -74,6 +89,7 @@ if ( ! isset( $_POST['deploy'] ) ) {
     file_put_contents( $new_theme_path . 'inc/default.php', $base_theme_functions_default );
   }
   
+  // creating style.css in the new theme and put basical comments in it
   if ( ! file_exists( $new_theme_path . 'style.css' ) ) {
     $style_css_content_sign = 'LyoNClRoZW1lIE5hbWU6IDw8QmFzZT4+DQpBdXRob3I6IEFub255bW91cw0KQXV0aG9yIFVSSToNClZlcnNpb246IDENCkRlc2NyaXB0aW9uOiBCYXNlIHRoZW1lIGZvciBXb3JkcHJlc3MNCkxpY2Vuc2U6IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHYyIG9yIGxhdGVyDQpMaWNlbnNlIFVSSTogaHR0cDovL3d3dy5nbnUub3JnL2xpY2Vuc2VzL2dwbC0yLjAuaHRtbA0KVGV4dCBEb21haW46IDw8YmFzZT4+DQpUYWdzOiBvbmUtY29sdW1uLCB0d28tY29sdW1ucw0KVGhlbWUgVVJJOg0KKi8=';
     $style_css_content = str_replace( array( '<<base>>', '<<Base>>' ), array( $_POST['dbname'], $_POST['sitename'] ), base64_decode($style_css_content_sign) );
@@ -82,7 +98,7 @@ if ( ! isset( $_POST['deploy'] ) ) {
   
   
   
-  // wordpress installation
+  // wordpress configuration
   $wp_salt = file_get_contents( 'https://api.wordpress.org/secret-key/1.1/salt/' );
   
   copy( 'wp-config-sample.php', 'wp-config.php' );
@@ -127,7 +143,9 @@ if ( ! isset( $_POST['deploy'] ) ) {
   // import default db dump
   if ( $db_dump = file_get_contents( $current_path . '/include/default-db.sql' ) ) {
     $site_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
-    $db_dump = str_replace( array( 'SITENAME', 'http://siteurl', '<<userpass>>', '<<template>>', '<<stylesheet>>' ), array( $_POST['sitename'], $site_url, $hashed_pass, $_POST['dbname'], $_POST['dbname'] ), $db_dump );
+    $site_description = ( isset( $_POST['site_description'] ) && ! empty( $_POST['site_description'] ) ) ? $_POST['site_description'] : 'Just another WordPress site';
+    $db_dump = str_replace( array( "'SITENAME'", "'Just another WordPress site'", 'http://siteurl', '<<userpass>>', '<<template>>', '<<stylesheet>>' ), array( "'" . $_POST['sitename'] . "'", "'" . $site_description . "'", $site_url, $hashed_pass, $_POST['dbname'], $_POST['dbname'] ), $db_dump );
+    
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     if ( $connection = mysqli_connect( ( ( $_POST['host'] ) ? $_POST['host'] : 'localhost' ), ! empty( $_POST['dbuser'] ) ? $_POST['dbuser'] : $_POST['dbname'], $_POST['password'], $_POST['dbname'] ) ) {
       mysqli_query( $connection, "DROP TABLE IF EXISTS `wp_commentmeta`, `wp_comments`, `wp_links`, `wp_options`, `wp_postmeta`, `wp_posts`, `wp_termmeta`, `wp_terms`, `wp_term_relationships`, `wp_term_taxonomy`, `wp_usermeta`, `wp_users`;" );
@@ -277,20 +295,20 @@ if ( ! isset( $_POST['deploy'] ) ) {
       recursive_pages_creation( $_POST['pages'] );
       
       // setup homepage and set it as front page
-      if ( isset( $_POST['homepage'] ) && $_POST['homepage'] == '0' ) {
-        $homepage_id = 2;
+      if ( isset( $_POST['homepage'] ) ) {
         update_option( 'show_on_front', 'page' );
-        update_option( 'page_on_front', $homepage_id );
-        wp_update_post( array( 'ID' => $homepage_id, 'post_title' => 'Home' ) );
-        update_post_meta( $homepage_id, '_wp_page_template', 'pages/template-home.php' );
-        if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
-          $fields = generate_acf_fields_code( 'home' );
-          if ( ! empty( $fields ) ) {
-            create_acf_fields_group( 'Homepage fields', 'page_template|pages/template-home.php', $fields );
+        $homepage_id = 2;
+        if ( $_POST['homepage'] == '0' ) {
+          update_option( 'page_on_front', $homepage_id );
+          wp_update_post( array( 'ID' => $homepage_id, 'post_title' => 'Home' ) );
+          update_post_meta( $homepage_id, '_wp_page_template', 'pages/template-home.php' );
+          if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+            $fields = generate_acf_fields_code( 'home' );
+            if ( ! empty( $fields ) ) {
+              create_acf_fields_group( 'Homepage Template', 'page_template|pages/template-home.php', $fields );
+            }
           }
-        }
-      } else {
-        if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+        } elseif ( $_POST['homepage'] == '1' ) {
           $blog_page_data = array(
             'post_type'    => 'page',
             'post_title'   => 'Blog',
@@ -299,11 +317,22 @@ if ( ! isset( $_POST['deploy'] ) ) {
             'post_author'  => 1,
           );
           $blog_page_id = wp_insert_post( $blog_page_data );
-          update_option( 'show_on_front', 'page' );
           update_option( 'page_for_posts', $blog_page_id );
-          $fields = generate_acf_fields_code( 'home' );
-          if ( ! empty( $fields ) ) {
-            create_acf_fields_group( 'Blog page fields', 'page_type|posts_page', $fields );
+          if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+            $fields = generate_acf_fields_code( 'home' );
+            if ( ! empty( $fields ) ) {
+              create_acf_fields_group( 'Blog page', 'page_type|posts_page', $fields );
+            }
+          }
+        } elseif ( $_POST['homepage'] == '2' ) {
+          file_put_contents( $new_theme_path . 'front-page.php', base64_decode('PD9waHAgZ2V0X2hlYWRlcigpOyA/PgoJPGRpdiBpZD0iY29udGVudCI+CgkJPD9waHAgJGxhdGVzdF9ibG9nX3Bvc3RzID0gbmV3IFdQX1F1ZXJ5KCBhcnJheSggJ3Bvc3RzX3Blcl9wYWdlJyA9PiAzICkgKTsgPz4KCQk8P3BocCBpZiAoICRsYXRlc3RfYmxvZ19wb3N0cy0+aGF2ZV9wb3N0cygpICkgOiA/PgoJCQk8P3BocCB3aGlsZSAoICRsYXRlc3RfYmxvZ19wb3N0cy0+aGF2ZV9wb3N0cygpICkgOiAkbGF0ZXN0X2Jsb2dfcG9zdHMtPnRoZV9wb3N0KCk7ID8+CgkJCQk8P3BocCBnZXRfdGVtcGxhdGVfcGFydCggJ2Jsb2Nrcy9jb250ZW50JywgZ2V0X3Bvc3RfdHlwZSgpICk7ID8+CgkJCTw/cGhwIGVuZHdoaWxlOyA/PgoJCQk8P3BocCBnZXRfdGVtcGxhdGVfcGFydCggJ2Jsb2Nrcy9wYWdlcicgKTsgPz4KCQk8P3BocCBlbHNlIDogPz4KCQkJPD9waHAgZ2V0X3RlbXBsYXRlX3BhcnQoICdibG9ja3Mvbm90X2ZvdW5kJyApOyA/PgoJCTw/cGhwIGVuZGlmOyA/PgoJCTw/cGhwIHdwX3Jlc2V0X3Bvc3RkYXRhKCk7ID8+Cgk8L2Rpdj4KCTw/cGhwIGdldF9zaWRlYmFyKCk7ID8+Cjw/cGhwIGdldF9mb290ZXIoKTsgPz4=') );
+          if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
+            update_option( 'page_on_front', $homepage_id );
+            wp_update_post( array( 'ID' => $homepage_id, 'post_title' => 'Front Page' ) );
+            $fields = generate_acf_fields_code( 'home' );
+            if ( ! empty( $fields ) ) {
+              create_acf_fields_group( 'Front Page', 'page_type|front_page', $fields );
+            }
           }
         }
       }
@@ -312,8 +341,8 @@ if ( ! isset( $_POST['deploy'] ) ) {
         $fields = generate_acf_fields_code( 'options' );
         if ( ! empty( $fields ) ) {
           create_acf_fields_group( 'Options Page fields', 'options_page|acf-options-theme-options', $fields );
-          file_put_contents( $new_theme_path . 'inc/default.php', str_replace( '/*acf theme', '//acf theme', $base_theme_functions_default ) );
         }
+        file_put_contents( $new_theme_path . 'inc/default.php', str_replace( '/*acf theme', '//acf theme', $base_theme_functions_default ) );
       }
       
       $deployment_result .= '<br />All pages with appropriate templates has been created.<br />';

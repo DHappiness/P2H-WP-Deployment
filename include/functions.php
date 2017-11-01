@@ -57,6 +57,23 @@ function recursive_svn_uploading( $url, $upload_path ) {
 	 
    endif;
 }
+
+// replace string in file
+function replace_string_in_file( $file_path, $search, $replace ) {
+		if ( file_exists( $file_path ) ) {
+			$file_content = file_get_contents( $file_path );
+			file_put_contents( $file_path, str_replace( $search, $replace, $file_content ) );
+		}
+}
+
+// replace string in all presented files
+function replace_string_in_selected_files( $files = array(), $search, $replace ) {
+	if ( ! empty( $files ) ) {
+		foreach ( $files as $file ) {
+				replace_string_in_file( $file, $search, $replace );
+		}
+	}
+}
  
  
 // generate random user password
@@ -214,11 +231,14 @@ if ( ! function_exists( 'create_acf_fields_group' ) ) {
 
 
 // delete files from specified folder
-function recursive_files_remover( $folder, $delete_only_inside = false ) {
+function recursive_files_remover( $folder, $delete_only_inside = false, $exceptions = array() ) {
 			$it = new RecursiveDirectoryIterator($folder, RecursiveDirectoryIterator::SKIP_DOTS);
 			$files = new RecursiveIteratorIterator($it,
 																RecursiveIteratorIterator::CHILD_FIRST);
 			foreach($files as $file) {
+							if ( ! empty( $exceptions ) && basename( dirname( $file->getRealPath() ) ) == basename( $folder ) && in_array( basename( $file->getRealPath() ), $exceptions ) ) {
+								continue;
+							}
 							if ($file->isDir()){
 											rmdir($file->getRealPath());
 							} else {

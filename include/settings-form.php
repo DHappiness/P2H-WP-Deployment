@@ -35,16 +35,24 @@
                           </fieldset>
                           <fieldset>
                             <h3>Wordpress Settings</h3>
-                            <input type="text" name="sitename" data-required="true" placeholder="Site Name" />
-                            <div class="field-holder">
-                                <strong class="title">Homepage Type</strong>
-                                <label><input type="radio" name="homepage" value="0" checked="checked">Custom Template </label>
-                                <label><input type="radio" name="homepage" value="1">Blog Posts</label>
-                                <label><a class="icon icon-plus add-acf-group" data-lightbox="ajax" data-src="<?php echo $deployment_file_url; ?>?acf-group=home" data-type="ajax" href="javascript:;" title='Add Field Group for "Homepage" (depends on selected type)'> </a></label>
-                            </div>
-                            <div class="field-holder">
-                                <strong class="title">ACF Options Page</strong>
-                                <label for="options-page-settings">Create Fields&nbsp;&nbsp;<a id="options-page-settings" class="icon icon-plus add-acf-group" data-lightbox="ajax" data-src="<?php echo $deployment_file_url; ?>?acf-group=options" data-type="ajax" href="javascript:;" title='Add Field Group for "Options Page"'></a></label>
+                            <label><input type="checkbox" class="show-hide" value="1" data-target="wordpress"> Show full settings</label>
+                            <div data-conditional="wordpress">
+                                <input type="text" name="sitename" data-required="true" placeholder="Site Name" />
+                                <input type="text" name="site_description" class="optional" placeholder="Site Description" />
+                                <div class="optional">
+                                    <div><label><input type="checkbox" name="delete_themes" value="1" checked="checked">Delete Default Themes</label></div>
+                                </div>
+                                <div class="field-holder">
+                                    <strong class="title">Homepage Type</strong>
+                                    <label><input type="radio" name="homepage" value="0" checked="checked">Custom Template </label>
+                                    <label><input type="radio" name="homepage" value="1">Blog Posts</label>
+                                    <label><input type="radio" name="homepage" value="2">Front Page</label>
+                                    <label><a class="icon icon-plus add-acf-group" data-lightbox="ajax" data-src="<?php echo $deployment_file_url; ?>?acf-group=home" data-type="ajax" href="javascript:;" title='Add Field Group for "Homepage" (depends on selected type)'> </a></label>
+                                </div>
+                                <div class="field-holder">
+                                    <strong class="title">ACF Options Page</strong>
+                                    <label for="options-page-settings">Create Fields&nbsp;&nbsp;<a id="options-page-settings" class="icon icon-plus add-acf-group" data-lightbox="ajax" data-src="<?php echo $deployment_file_url; ?>?acf-group=options" data-type="ajax" href="javascript:;" title='Add Field Group for "Options Page"'></a></label>
+                                </div>
                             </div>
                           </fieldset>
                           <fieldset>
@@ -63,6 +71,13 @@
                           </fieldset>
                           <fieldset>
                             <h3>Create Pages</h3>
+                            <label><input type="checkbox" class="show-hide" value="1" data-target="pages-unification"> Unify Pages</label>
+                            <div data-conditional="pages-unification">
+                                <div class="optional">
+                                    <a href="#" class="unify-pages">Highlight Identical</a> | <a href="#" class="unify-pages delete">Delete Identical</a>
+                                    <br /><br />
+                                </div>
+                            </div>
                             <div class="clone-elements" data-subitems="subpages">
                               <a href="#" class="add-item">Add Page</a>
                               <br /><br />
@@ -104,7 +119,7 @@
             $time = number_format( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ), 2 );
             echo "Process Time: {$time} seconds"; ?>
         </p>
-        <p class="copyrights">&copy; Wordpress Deployment for P2H's Implementators. <?php echo date( 'Y' ); ?>. Version <?php echo $deployment_settings['deployment_version']; ?></p>
+        <p class="copyrights">&copy; Wordpress Deployment for P2H's Implementators. <?php echo date( 'Y' ); ?>. <?php if ( isset( $_COOKIE['skip_updater'] ) ) {echo '<a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment" style="color: #f00;">Version ';} else {echo 'Version ';} ?><?php echo $deployment_settings['deployment_version']; if ( isset( $_COOKIE['skip_updater'] ) ) {echo '</a>';} ?></p>
     </footer>
 </body>
 </html>
