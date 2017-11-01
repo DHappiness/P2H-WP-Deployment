@@ -204,7 +204,7 @@ if ( ! function_exists( 'create_acf_fields_group' ) ) {
 					$title = '"' . $entity_name . '" fields';
 			}
 			if ( $test = acf_write_json_field_group(array(
-				'key' => 'group_' . unique(),
+				'key' => 'group_' . uniqid(),
 				'title' => $title,
 				'fields' => $fields,
 				'style' => 'seamless',
