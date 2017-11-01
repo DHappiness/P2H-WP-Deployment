@@ -11,8 +11,7 @@
     <link rel="icon" href="include/images/favicon.png">
     <?php if ( ! empty( $deployment_result ) ) : ?>
         <style type="text/css"><?php
-        echo file_get_contents( 'https://fonts.googleapis.com/css?family=Questrial' );
-        echo file_get_contents( 'css/style.css' );
+        echo file_get_contents( 'https://raw.githubusercontent.com/DenisYakimchuk/P2H-WP-Deployment/master/include/css/styles.css' );
         ?></style>
     <?php endif; ?>
 </head>
