@@ -1,3 +1,4 @@
+<?php global $deployment_result; ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,6 +9,12 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="include/js/scripts.js"></script>
     <link rel="icon" href="include/images/favicon.png">
+    <?php if ( ! empty( $deployment_result ) ) : ?>
+        <style type="text/css"><?php
+        echo file_get_contents( 'https://fonts.googleapis.com/css?family=Questrial' );
+        echo file_get_contents( 'css/style.css' );
+        ?></style>
+    <?php endif; ?>
 </head>
 <body>
     <?php $deployment_file_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
@@ -16,8 +23,7 @@
     </header>
     <main id="main">
         <div class="main-settings">
-            <?php global $deployment_result;
-            if ( empty( $deployment_result ) ) : ?>
+            <?php if ( empty( $deployment_result ) ) : ?>
                 <form action="./deployment.php" method="post" enctype="multipart/form-data" class="form-validation">
                   <div class="two-columns">
                       <div class="col">
