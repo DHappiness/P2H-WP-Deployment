@@ -157,7 +157,7 @@ if ( ! function_exists( 'generate_acf_fields_code' ) ) {
 					$fields[] = array (
 						'key' => 'field_' . uniqid(),
 						'label' => $field_data->title,
-						'name' => '_' . sanitize_title( $field_data->title ),
+						'name' => '_' . str_replace( '-', '_', sanitize_title( $field_data->title ) ),
 						'type' => $field_data->type,
 					);
 				}
@@ -204,7 +204,7 @@ if ( ! function_exists( 'create_acf_fields_group' ) ) {
 					$title = '"' . $entity_name . '" fields';
 			}
 			if ( $test = acf_write_json_field_group(array(
-				'key' => sanitize_title( $entity_type . '_' . $entity_name ),
+				'key' => 'group_' . unique(),
 				'title' => $title,
 				'fields' => $fields,
 				'style' => 'seamless',
