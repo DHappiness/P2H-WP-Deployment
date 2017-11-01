@@ -119,7 +119,7 @@
             $time = number_format( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ), 2 );
             echo "Process Time: {$time} seconds"; ?>
         </p>
-        <p class="copyrights">&copy; Wordpress Deployment for P2H's Implementators. <?php echo date( 'Y' ); ?>. <?php if ( isset( $_COOKIE['skip_updater'] ) ) {echo '<a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment" style="color: #f00;">Version ';} else {echo 'Version ';} ?><?php echo $deployment_settings['deployment_version']; if ( isset( $_COOKIE['skip_updater'] ) ) {echo '</a>';} ?></p>
+        <p class="copyrights">&copy; Wordpress Deployment for P2H's Implementators. <?php echo date( 'Y' ); ?>. <?php if ( isset( $_COOKIE['skip_updater'] ) ) {echo '<a href="https://github.com/DenisYakimchuk/P2H-WP-Deployment" target="_blank" style="color: #f00;">Version ';} else {echo 'Version ';} ?><?php echo $deployment_settings['deployment_version']; if ( isset( $_COOKIE['skip_updater'] ) ) {echo '</a>';} ?></p>
     </footer>
 </body>
 </html>
