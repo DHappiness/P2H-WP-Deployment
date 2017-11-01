@@ -1,7 +1,7 @@
 <?php include_once( 'config.inc' );
 global $deployment_settings, $deployment_result;
 if ( empty( $deployment_settings['svn_username'] ) || empty( $deployment_settings['svn_password'] ) ) {
-	$deployment_result .= '<p class="settings-error">Settings is not fully configured! Go to include/config.php and setup all the required data.</p>';
+	$deployment_result .= '<p class="settings-error">Settings is not fully configured! Go to include/config.inc and setup all the required data.</p>';
 }
 $default_settings = $deployment_settings;
 $default_plugins = $plugins;
