@@ -18,7 +18,7 @@
 <body>
     <?php $deployment_file_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
     <header id="header">
-        <h1 class="logo"><a href="<?php echo $deployment_file_url; ?>"><img src="include/images/logo.png" alt="Wordpress Deplyment P2H" /></a></h1>
+        <h1 class="logo"><a href="<?php echo $deployment_file_url; ?>"><img src="<?php if ( ! empty( $deployment_result ) ) : ?>https://raw.githubusercontent.com/DenisYakimchuk/P2H-WP-Deployment/master/include/images/logo.png<?php else : ?>include/images/logo.png<?php endif; ?>" alt="Wordpress Deplyment P2H" /></a></h1>
     </header>
     <main id="main">
         <div class="main-settings">
