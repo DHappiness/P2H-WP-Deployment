@@ -11,7 +11,7 @@ $deployment_settings = array(
   'svn_username' => '', /* required */
   'svn_password' => '', /* required */
   'install_plugins' => array( 'acf' ),
-  'deployment_version' => '1.1', /* Don not change */
+  'deployment_version' => '1.1', /* Do not change */
   'delete_after_execution' => true,
 );
 
