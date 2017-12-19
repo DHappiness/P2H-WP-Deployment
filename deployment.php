@@ -340,7 +340,7 @@ if ( ! isset( $_POST['deploy'] ) ) {
       if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
         $fields = generate_acf_fields_code( 'options' );
         if ( ! empty( $fields ) ) {
-          create_acf_fields_group( 'Options Page fields', 'options_page|acf-options-theme-options', $fields );
+          create_acf_fields_group( 'Options Page', 'options_page|acf-options-theme-options', $fields );
         }
         file_put_contents( $new_theme_path . 'inc/default.php', str_replace( '/*acf theme', '//acf theme', $base_theme_functions_default ) );
       }
