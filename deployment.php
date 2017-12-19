@@ -305,7 +305,7 @@ if ( ! isset( $_POST['deploy'] ) ) {
           if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
             $fields = generate_acf_fields_code( 'home' );
             if ( ! empty( $fields ) ) {
-              create_acf_fields_group( 'Homepage Template', 'page_template|pages/template-home.php', $fields );
+              create_acf_fields_group( 'Homepage', 'page_template|pages/template-home.php', $fields );
             }
           }
         } elseif ( $_POST['homepage'] == '1' ) {
