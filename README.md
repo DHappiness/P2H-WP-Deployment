@@ -1,7 +1,7 @@
 <h1># P2H-WP-Deployment</h1>
 <p><em>Useful only for P2H employees.</em></p>
 
-<p>Current Version: 1.1</p>
+<p>Current Version: 1.2</p>
 
 <p>Edit "include/config.inc" before using. You need to setup your SVN Credentials at first.</p>
 
