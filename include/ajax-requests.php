@@ -26,10 +26,25 @@ endif; ?>
 		'image' => 'Image',
 		'file' => 'File',
 		'gallery' => 'Gallery',
+		'link' => 'Link',
+		'post_object' => 'Post Object',
+		'page_link' => 'Page Link',
+		'relationship' => 'Relationship',
+		'taxonomy' => 'Taxonomy',
+		'user' => 'User',
+		'select' => 'Select',
+		'checkbox' => 'Checkbox',
+		'radio' => 'Radio Button',
+		'true_false' => 'True / False',
 		'google_map' => 'Google Map',
 		'date_picker' => 'Date Picker',
+		'date_time_picker' => 'Date Time Picker',
+		'time_picker' => 'Time Picker',
 		'color_picker' => 'Color Picker',
 		'tab' => 'TAB',
+		'group' => 'Group',
+		'repeater' => 'Repeater',
+		'flexible_content' => 'Flexible Content',
 	); ?>
 	<form action="#" method="post" class="ajax-form-validation">
 		<div class="clone-elements" data-depth="1">
@@ -40,6 +55,7 @@ endif; ?>
 				<div class="item">
 					<div class="field-holder">
 						<input type="text" name="fields[<?php echo $item; ?>][title]" placeholder="Field Name" <?php echo isset( $current_data[$item]->title ) ? 'value="' . $current_data[$item]->title . '"' : ''; ?>>
+						<input type="text" name="fields[<?php echo $item; ?>][slug]" placeholder="Field Slug" <?php echo isset( $current_data[$item]->title ) ? 'value="' . $current_data[$item]->title . '"' : ''; ?>>
 						<?php $selected_type = isset( $current_data[$item]->type ) ? $current_data[$item]->type : ''; ?>
 						<select name="fields[<?php echo $item; ?>][type]" title="Field Type">
 							<?php foreach( $acf_types as $type_slug => $type_label ) : ?>
@@ -55,7 +71,7 @@ endif; ?>
 		<input type="submit" value="Save">
 		<span class="loader"></span>
 	</form>
-	<?php exit();
+	<?php exit;
 elseif ( isset( $_POST['fields'] ) && ! empty( $_POST['fields'] ) ) :
 	if ( ! file_exists( $acf_path ) ) {
 		mkdir( $acf_path );
@@ -70,5 +86,13 @@ elseif ( isset( $_POST['fields'] ) && ! empty( $_POST['fields'] ) ) :
 		$fields = json_encode( $fields );
 		file_put_contents( $acf_file_path, $fields );
 	}
-	exit();
+	exit;
+elseif ( isset( $_GET['dbcheck'] ) ) :
+	$dbuser = ! empty( $_GET['dbuser'] ) ? $_GET['dbuser'] : $_GET['dbname'];
+	if ( mysqli_connect( $_GET['host'], $dbuser, $_GET['password'] ) ) {
+		echo 1;
+	} else {
+		echo 0;
+	}
+	exit;
 endif;

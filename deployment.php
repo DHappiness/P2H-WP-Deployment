@@ -9,26 +9,26 @@ if ( ! isset( $_POST['deploy'] ) ) {
   // check for the latest version
   include_once( 'include/updater.php' );
 } else {
-  
+
   // helper functions
   include_once( 'include/functions.php' );
-  
+
   // extended php ZipArchive Class
   include_once( 'include/BetterZipArchive.php' );
-  
+
   // upload and unpack latest wordpress version
   $wordpress_url = 'https://wordpress.org/latest.zip';
   $zip_file = basename( $wordpress_url );
   $current_path = dirname(__FILE__);
-  
-  if ( $wordpress_zip = @fopen($wordpress_url, 'r') ) {  
+
+  if ( $wordpress_zip = @fopen($wordpress_url, 'r') ) {
     file_put_contents($zip_file, $wordpress_zip );
   } else {
     $deployment_result .= 'ERROR: Can\'t get a wordpress archive.';
     include_once( 'include/settings-form.php' );
     exit();
   }
-  
+
   $zip = new BetterZipArchive;
   $res = $zip->open($zip_file);
   if ($res === TRUE) {
@@ -40,23 +40,23 @@ if ( ! isset( $_POST['deploy'] ) ) {
     include_once( 'include/settings-form.php' );
     exit();
   }
-  
+
   // delete default themes
   if ( isset( $_POST['delete_themes'] ) ) {
     recursive_files_remover( $current_path . '/wp-content/themes', true, array( 'index.php' ) );
   }
-  
-  
-  
+
+
+
   // import ACF PRO plugin and base wordpress theme from SVN ( or from include folder )
   $acf_path = $current_path . '/wp-content/plugins/advanced-custom-fields-pro/';
   $acf_svn_url = 'http://svn.w3.ua/Implementation/Development/Wordpress/Plugins/acf-addons/advanced-custom-fields-pro/';
-  
+
   $base_theme_path = $current_path . '/wp-content/themes/base/';
   $base_theme_svn_url = 'http://svn.w3.ua/Implementation/Development/Wordpress/BaseTheme/base/';
-  
+
   $custom_base_theme_location = 'include/base';
-  
+
   if ( file_exists( $custom_base_theme_location ) ) {
     $deployment_result .= 'Was used custom base theme.<br />';
     rcopy( $custom_base_theme_location, $base_theme_path );
@@ -64,12 +64,12 @@ if ( ! isset( $_POST['deploy'] ) ) {
     $deployment_result .= 'Was used base theme from SVN.<br />';
     recursive_svn_uploading( $base_theme_svn_url, $base_theme_path );
   }
-  
+
   // raname theme and theme files
   rename( $base_theme_path . 'languages/base.pot', str_replace( 'base.pot', $_POST['dbname'] . '.pot', $base_theme_path . 'languages/base.pot' ) );
   $new_theme_path = str_replace( '/base/', '/' . $_POST['dbname'] . '/', $base_theme_path );
   rename( $base_theme_path, $new_theme_path );
-  
+
   // change language domain
   $theme_files = glob( $new_theme_path.'*.php' );
   $scaned_theme_folder = scandir($new_theme_path);
@@ -80,7 +80,7 @@ if ( ! isset( $_POST['deploy'] ) ) {
       replace_string_in_selected_files( $files_in_folder, "'base'", "'" . $_POST['dbname'] . "'" );
     }
   }
-  
+
   // uploading acf and further needed manipulation
   if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
     recursive_svn_uploading( $acf_svn_url, $acf_path );
@@ -88,25 +88,25 @@ if ( ! isset( $_POST['deploy'] ) ) {
     $base_theme_functions_default = str_replace( '//acf theme', '/*acf theme', $base_theme_functions_default );
     file_put_contents( $new_theme_path . 'inc/default.php', $base_theme_functions_default );
   }
-  
+
   // creating style.css in the new theme and put basical comments in it
   if ( ! file_exists( $new_theme_path . 'style.css' ) ) {
     $style_css_content_sign = 'LyoNClRoZW1lIE5hbWU6IDw8QmFzZT4+DQpBdXRob3I6IEFub255bW91cw0KQXV0aG9yIFVSSToNClZlcnNpb246IDENCkRlc2NyaXB0aW9uOiBCYXNlIHRoZW1lIGZvciBXb3JkcHJlc3MNCkxpY2Vuc2U6IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHYyIG9yIGxhdGVyDQpMaWNlbnNlIFVSSTogaHR0cDovL3d3dy5nbnUub3JnL2xpY2Vuc2VzL2dwbC0yLjAuaHRtbA0KVGV4dCBEb21haW46IDw8YmFzZT4+DQpUYWdzOiBvbmUtY29sdW1uLCB0d28tY29sdW1ucw0KVGhlbWUgVVJJOg0KKi8=';
     $style_css_content = str_replace( array( '<<base>>', '<<Base>>' ), array( $_POST['dbname'], $_POST['sitename'] ), base64_decode($style_css_content_sign) );
     file_put_contents( $new_theme_path . 'style.css', $style_css_content );
   }
-  
-  
-  
+
+
+
   // wordpress configuration
   $wp_salt = file_get_contents( 'https://api.wordpress.org/secret-key/1.1/salt/' );
-  
+
   copy( 'wp-config-sample.php', 'wp-config.php' );
-  
+
   if ( $default_wpconfig = file_get_contents( 'wp-config.php' ) ) {
-    
-    $edited_wpconfig = str_replace( array( 'database_name_here', 'username_here', 'password_here' ), array( $_POST['dbname'], $_POST['dbname'], $_POST['password'] ), $default_wpconfig );
-    
+
+    $edited_wpconfig = str_replace( array( 'database_name_here', 'username_here', 'password_here', 'localhost' ), array( $_POST['dbname'], $_POST['dbname'], $_POST['password'], $_POST['host'] ), $default_wpconfig );
+
     $wpconfig_lines = explode( "\n", $edited_wpconfig );
     $salt_lines = explode( "\n", $wp_salt );
     $updated_wpconfig_lines = array();
@@ -123,21 +123,21 @@ if ( ! isset( $_POST['deploy'] ) ) {
       $i++;
     }
     $edited_wpconfig = implode( "\n", $updated_wpconfig_lines );
-    
+
     file_put_contents( 'wp-config.php', $edited_wpconfig );
   }
-  
-  
-  
-  //user credentials  
+
+
+
+  //user credentials
   $user_name = 'admin';
   $user_email = 'admin@email.com';
   $user_password = randomPassword();
-  
+
   include_once( 'wp-includes/class-phpass.php' );
-  $wp_hasher = new PasswordHash(8, true); 
+  $wp_hasher = new PasswordHash(8, true);
   $hashed_pass = $wp_hasher->HashPassword( trim( $user_password ) );
-  
+
   $deployment_result .= "<strong>WP User:</strong> $user_name<br /><strong>User Password:</strong> $user_password<br /><strong>User Email:</strong> $user_email<br />";
 
   // import default db dump
@@ -145,9 +145,9 @@ if ( ! isset( $_POST['deploy'] ) ) {
     $site_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
     $site_description = ( isset( $_POST['site_description'] ) && ! empty( $_POST['site_description'] ) ) ? $_POST['site_description'] : 'Just another WordPress site';
     $db_dump = str_replace( array( "'SITENAME'", "'Just another WordPress site'", 'http://siteurl', '<<userpass>>', '<<template>>', '<<stylesheet>>' ), array( "'" . $_POST['sitename'] . "'", "'" . $site_description . "'", $site_url, $hashed_pass, $_POST['dbname'], $_POST['dbname'] ), $db_dump );
-    
+
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-    if ( $connection = mysqli_connect( ( ( $_POST['host'] ) ? $_POST['host'] : 'localhost' ), ! empty( $_POST['dbuser'] ) ? $_POST['dbuser'] : $_POST['dbname'], $_POST['password'], $_POST['dbname'] ) ) {
+    if ( $connection = mysqli_connect( ( ! empty( $_POST['host'] ) ? $_POST['host'] : 'localhost' ), ! empty( $_POST['dbuser'] ) ? $_POST['dbuser'] : $_POST['dbname'], $_POST['password'], $_POST['dbname'] ) ) {
       mysqli_query( $connection, "DROP TABLE IF EXISTS `wp_commentmeta`, `wp_comments`, `wp_links`, `wp_options`, `wp_postmeta`, `wp_posts`, `wp_termmeta`, `wp_terms`, `wp_term_relationships`, `wp_term_taxonomy`, `wp_usermeta`, `wp_users`;" );
       $lines = explode( "\n", $db_dump );
       $templine = '';
@@ -156,7 +156,7 @@ if ( ! isset( $_POST['deploy'] ) ) {
         // Skip it if it's a comment
         if ( substr( $line, 0, 2 ) == '--' || $line == '' )
             continue;
-        
+
         // Add this line to the current segment
         $templine .= $line;
         // If it has a semicolon at the end, it's the end of the query
@@ -170,8 +170,8 @@ if ( ! isset( $_POST['deploy'] ) ) {
       $deployment_result .= "Database imported successfully.<br/>";
     }
   }
-  
-  
+
+
   $useremail = $user_email;
   // load WP API
   define( 'WP_USE_THEMES', false );
@@ -179,8 +179,8 @@ if ( ! isset( $_POST['deploy'] ) ) {
   define( 'DISABLE_WP_CRON', true );
   if( ! session_id() ) {session_start();}
   include_once( 'wp-load.php' );
-  
-  
+
+
   // install selected plugins
   if ( ! empty( $_POST['plugins'] ) ) {
     require_once( $current_path . "/wp-admin/includes/plugin.php" );
@@ -197,41 +197,41 @@ if ( ! isset( $_POST['deploy'] ) ) {
         }
         continue;
       }
-      
+
       $plugin_url = $plugins[$plugin]['url'];
       $zip_file = basename( $plugin_url );
       $path_to_plugins = '/wp-content/plugins/';
-      
+
       if ( ! @file_put_contents( 'plugins/' . $zip_file, fopen( $plugin_url, 'r' ) ) ) {
         $deployment_result .= '<br/>Uploadin of Plugin <strong>"' . $plugins[$plugin]['label'] . '"</strong> faild.';
       }
-      
+
       $zip = new BetterZipArchive;
       $res = $zip->open( 'plugins/' . $zip_file );
       if ($res === TRUE) {
         $zip->extractTo( $current_path . $path_to_plugins );
         $zip->close();
       }
-      
+
       wp_cache_init();
-      
+
       if ( run_activate_plugin( $plugin ) ) {
         $deployment_result .= '<br/>Plugin <strong>"' . $plugins[$plugin]['label'] . '"</strong> was successfully installed and activated.';
       }
-      
+
     }
-    
+
     wp_cache_flush();
-    
+
     // delete uploaded plugins
     recursive_files_remover( 'plugins' );
-    
+
     $deployment_result .= '<br />';
-    
+
   }
-  
-  
-  
+
+
+
   // create file with cpt and taxonomy registration
   if ( ! empty( $_POST['cpt'] ) ) {
     $cpt_code_sign = 'CQkkbGFiZWxzID0gYXJyYXkoDQoJCSAgICAnbmFtZScgICAgICAgICAgICAgICA9PiBfeCggJ0Jvb2tzJywgJ3Bvc3QgdHlwZSBnZW5lcmFsIG5hbWUnLCAnYmFzZScgKSwNCgkJICAgICdzaW5ndWxhcl9uYW1lJyAgICAgID0+IF94KCAnQm9vaycsICdwb3N0IHR5cGUgc2luZ3VsYXIgbmFtZScsICdiYXNlJyApLA0KCQkgICAgJ21lbnVfbmFtZScgICAgICAgICAgPT4gX3goICdCb29rcycsICdhZG1pbiBtZW51JywgJ2Jhc2UnICksDQoJCSAgICAnbmFtZV9hZG1pbl9iYXInICAgICA9PiBfeCggJ0Jvb2snLCAnYWRkIG5ldyBvbiBhZG1pbiBiYXInLCAnYmFzZScgKSwNCgkJICAgICdhZGRfbmV3JyAgICAgICAgICAgID0+IF94KCAnQWRkIE5ldycsICdib29rJywgJ2Jhc2UnICksDQoJCSAgICAnYWRkX25ld19pdGVtJyAgICAgICA9PiBfXyggJ0FkZCBOZXcgQm9vaycsICdiYXNlJyApLA0KCQkgICAgJ25ld19pdGVtJyAgICAgICAgICAgPT4gX18oICdOZXcgQm9vaycsICdiYXNlJyApLA0KCQkgICAgJ2VkaXRfaXRlbScgICAgICAgICAgPT4gX18oICdFZGl0IEJvb2snLCAnYmFzZScgKSwNCgkJICAgICd2aWV3X2l0ZW0nICAgICAgICAgID0+IF9fKCAnVmlldyBCb29rJywgJ2Jhc2UnICksDQoJCSAgICAnYWxsX2l0ZW1zJyAgICAgICAgICA9PiBfXyggJ0FsbCBCb29rcycsICdiYXNlJyApLA0KCQkgICAgJ3NlYXJjaF9pdGVtcycgICAgICAgPT4gX18oICdTZWFyY2ggQm9va3MnLCAnYmFzZScgKSwNCgkJICAgICdwYXJlbnRfaXRlbV9jb2xvbicgID0+IF9fKCAnUGFyZW50IEJvb2tzOicsICdiYXNlJyApLA0KCQkgICAgJ25vdF9mb3VuZCcgICAgICAgICAgPT4gX18oICdObyBib29rcyBmb3VuZC4nLCAnYmFzZScgKSwNCgkJICAgICdub3RfZm91bmRfaW5fdHJhc2gnID0+IF9fKCAnTm8gYm9va3MgZm91bmQgaW4gVHJhc2guJywgJ2Jhc2UnICkNCgkJKTsNCgkJJGFyZ3MgPSBhcnJheSgNCgkJICAgICdsYWJlbHMnICAgICAgICAgICAgID0+ICRsYWJlbHMsDQoJCSAgICAncHVibGljJyAgICAgICAgICAgICA9PiB0cnVlLA0KCQkgICAgJ3B1YmxpY2x5X3F1ZXJ5YWJsZScgPT4gdHJ1ZSwNCgkJICAgICdzaG93X3VpJyAgICAgICAgICAgID0+IHRydWUsDQoJCSAgICAnc2hvd19pbl9tZW51JyAgICAgICA9PiB0cnVlLA0KCQkgICAgJ3F1ZXJ5X3ZhcicgICAgICAgICAgPT4gdHJ1ZSwNCgkJICAgICdyZXdyaXRlJyAgICAgICAgICAgID0+IGFycmF5KCAnc2x1ZycgPT4gJzw8Ym9vaz4+JyApLA0KCQkgICAgJ2NhcGFiaWxpdHlfdHlwZScgICAgPT4gJ3Bvc3QnLA0KCQkgICAgJ2hhc19hcmNoaXZlJyAgICAgICAgPT4gdHJ1ZSwNCgkJICAgICdoaWVyYXJjaGljYWwnICAgICAgID0+IGZhbHNlLA0KCQkgICAgJ21lbnVfcG9zaXRpb24nICAgICAgPT4gbnVsbCwNCgkJICAgICdzdXBwb3J0cycgICAgICAgICAgID0+IGFycmF5KCAndGl0bGUnLCAnZWRpdG9yJywgJ2F1dGhvcicsICd0aHVtYm5haWwnLCAnZXhjZXJwdCcsICdjb21tZW50cycgKQ0KCQkpOw0KCQlyZWdpc3Rlcl9wb3N0X3R5cGUoICc8PGJvb2s+PicsICRhcmdzICk7';
@@ -240,9 +240,9 @@ if ( ! isset( $_POST['deploy'] ) ) {
     $taxonomy_code = base64_decode( $taxonomy_code_sign );
     include_once( 'include/Inflect.php' );
     $inflector = new Inflector();
-    
+
     $entities = '';
-    
+
     foreach( $_POST['cpt'] as $cpt_key => $cpt ) {
       if ( ! empty( $cpt['title'] ) ) {
         $plural_cpt = $inflector->pluralize( $cpt['title'] );
@@ -259,20 +259,20 @@ if ( ! isset( $_POST['deploy'] ) ) {
               $plural_tax = $inflector->pluralize( $taxonomy['title'] );
               $taxonomy_slug = strtolower( $taxonomy['title'] ) == 'category' ? sanitize_key( $cpt['title'] . '_cat' ) : sanitize_key( $taxonomy['title'] );
               $entities .= str_replace( array( 'Genres', 'Genre', 'genre', 'book' ), array( ucfirst( $plural_tax ), ucfirst( $taxonomy['title'] ), $taxonomy_slug, sanitize_key( $cpt['title'] ) ), $taxonomy_code ) . "\n\n";
-              
+
               if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
                 $fields = generate_acf_fields_code( 'cpt_' . $cpt_key . '_taxonomies_' . $tax_key );
                 if ( ! empty( $fields ) ) {
                   create_acf_fields_group( $taxonomy['title'], 'taxonomy|' . sanitize_key( $taxonomy['title'] ), $fields );
                 }
               }
-              
+
             }
           }
         }
       }
     }
-    
+
     if ( $entities ) {
       $entities_code = "<?php // Registration of Custom Post Types and Custom Taxonomies\n\nif ( ! function_exists( 'init_entities' ) ) {\n\n\tfunction init_entities() {\n\n$entities\n\t}\n\tadd_action( 'init', 'init_entities' );\n}";
       $entities_file_exists = file_exists( $new_theme_path . 'inc/cpt.php' );
@@ -282,18 +282,18 @@ if ( ! isset( $_POST['deploy'] ) ) {
         file_put_contents( $new_theme_path . 'functions.php', str_replace( "'/inc/default.php' );", "'/inc/default.php' ); \n // Registration of Custom Post Types & Custom Taxonomies \n include( get_template_directory() . '/inc/entites.php' );", $functions_php ) );
       }
     }
-        
+
   }
-  
-  
+
+
   // add pages to WP
   if ( ! empty( $_POST['pages'] ) ) {
     include_once( 'include/LoremIpsum.php' );
-    
+
     if ( is_array( $_POST['pages'] ) ) {
-      
-      recursive_pages_creation( $_POST['pages'] );
-      
+
+      recursive_pages_creation( $_POST['pages'], 0, '', $_POST['dbname'] );
+
       // setup homepage and set it as front page
       if ( isset( $_POST['homepage'] ) ) {
         update_option( 'show_on_front', 'page' );
@@ -336,7 +336,7 @@ if ( ! isset( $_POST['deploy'] ) ) {
           }
         }
       }
-      
+
       if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
         $fields = generate_acf_fields_code( 'options' );
         if ( ! empty( $fields ) ) {
@@ -344,9 +344,9 @@ if ( ! isset( $_POST['deploy'] ) ) {
         }
         file_put_contents( $new_theme_path . 'inc/default.php', str_replace( '/*acf theme', '//acf theme', $base_theme_functions_default ) );
       }
-      
+
       $deployment_result .= '<br />All pages with appropriate templates has been created.<br />';
-      
+
       // UPDATE PERMALINKS
       global $wp_rewrite;
       $wp_rewrite->set_permalink_structure('/%postname%/');
@@ -354,9 +354,9 @@ if ( ! isset( $_POST['deploy'] ) ) {
       $wp_rewrite->flush_rules( true );
       $deployment_result .= 'Permalinks structure changed to <strong>/%postname%/</strong><br />';
     }
-  }  
-  
-  
+  }
+
+
   // authentificate admin
   if( ! empty( $useremail ) ) {
     if ( $user = get_user_by( 'email', $useremail ) ) {
@@ -371,9 +371,9 @@ if ( ! isset( $_POST['deploy'] ) ) {
   } else {
     $deployment_result .= '<br/>User Email is empty';
   }
-  
+
   $deployment_result .= '<br /> <a href="'. get_admin_url() .'" target="_blank">Go to WordPress admin panel.</a>';
-  
+
 }
 
 // main form

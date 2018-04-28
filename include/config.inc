@@ -3,16 +3,17 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
-set_time_limit( 3600 );
+ignore_user_abort( true );
+set_time_limit( 0 );
 
 
 // General Configuration
 $deployment_settings = array(
-  'svn_username' => '', /* required */
-  'svn_password' => '', /* required */
+  'svn_username' => 'dyakimchuk', /* required */
+  'svn_password' => 'MpCfhqGg2r', /* required */
   'install_plugins' => array( 'acf' ),
-  'deployment_version' => '1.1', /* Do not change */
-  'delete_after_execution' => true,
+  'deployment_version' => '1.2', /* Do not change */
+  'delete_after_execution' => false,
 );
 
 // References to plugins' repositories ( except ACF )
@@ -74,6 +75,10 @@ $plugins = array(
 		'label' => 'MailPoet 2',
 		'url' => $plugins_url . 'wysija-newsletters.latest-stable.zip'
 	),
+	'mailpoet/mailpoet.php' => array(
+		'label' => 'MailPoet 3',
+		'url' => $plugins_url . 'mailpoet.latest-stable.zip'
+	),
 	'dynamic-widgets/dynamic-widgets.php' => array(
 		'label' => 'Dynamic Widgets',
 		'url' => $plugins_url . 'dynamic-widgets.latest-stable.zip'
@@ -105,5 +110,9 @@ $plugins = array(
 	'theme-check/theme-check.php' => array(
 		'label' => 'Theme Check',
 		'url' => $plugins_url . 'theme-check.latest-stable.zip'
+	),
+	'sharethis-share-buttons/sharethis-share-buttons.php' => array(
+		'label' => 'ShareThis',
+		'url' => $plugins_url . 'sharethis-share-buttons.latest-stable.zip'
 	),
 );

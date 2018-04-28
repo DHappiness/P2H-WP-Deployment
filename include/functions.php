@@ -1,22 +1,22 @@
 <?php /**
   * Recursively copy files from one directory to another
-  * 
+  *
   * @param String $src - Source of files being moved
   * @param String $dest - Destination of files being moved
   */
  function rcopy($src, $dest){
- 
+
      // If source is not a directory stop processing
      if(!is_dir($src)) return false;
- 
+
      // If the destination directory does not exist create it
-     if(!is_dir($dest)) { 
+     if(!is_dir($dest)) {
          if(!mkdir($dest)) {
              // If the destination directory could not be created stop processing
              return false;
-         }    
+         }
      }
- 
+
      // Open the source directory to read in files
      $i = new DirectoryIterator($src);
      foreach($i as $f) {
@@ -27,19 +27,19 @@
          }
      }
  }
- 
+
 
 // upload files and folders from SVN
 function recursive_svn_uploading( $url, $upload_path ) {
 			global $deployment_settings;
-			
+
    $context = stream_context_create(array (
 	   'http' => array (
 		   'header' => 'Authorization: Basic ' . base64_encode( $deployment_settings['svn_username'] . ":" . $deployment_settings['svn_password'] )
 	   )
    ));
    if ( $data = file_get_contents($url, false, $context) ) :
-   
+
 	 $files = new SimpleXMLElement( $data );
 	 if ( $files->index->file ) {
 	   mkdir( $upload_path, 0755, true );
@@ -54,7 +54,7 @@ function recursive_svn_uploading( $url, $upload_path ) {
 		 recursive_svn_uploading( $url . $dir['@attributes']['href'], $upload_path . $dir['@attributes']['href'], $deployment_settings );
 	   }
 	 }
-	 
+
    endif;
 }
 
@@ -74,8 +74,8 @@ function replace_string_in_selected_files( $files = array(), $search, $replace )
 		}
 	}
 }
- 
- 
+
+
 // generate random user password
 function randomPassword() {
 	 $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
@@ -88,9 +88,9 @@ function randomPassword() {
 	 return implode($pass); //turn the array into a string
  }
 
- 
+
 // creating of Wordpress Pages
-function recursive_pages_creation( $pages, $parent = 0, $acf_identifier_path = '' ) {
+function recursive_pages_creation( $pages, $parent = 0, $acf_identifier_path = '', $dbname ) {
 	 $lipsum = new LoremIpsum();
 	 $default_page_data = array(
 		 'post_type'   => 'page',
@@ -98,7 +98,7 @@ function recursive_pages_creation( $pages, $parent = 0, $acf_identifier_path = '
 		 'post_status' => 'publish',
 		 'post_author' => 1,
 	 );
-		
+
 	 foreach( $pages as $key => $page ) {
 				if ( ! empty( $page['title'] ) ) {
 						$current_page_data = array(
@@ -109,12 +109,13 @@ function recursive_pages_creation( $pages, $parent = 0, $acf_identifier_path = '
 						$page_data = array_merge( $default_page_data, $current_page_data );
 						$new_page_id = wp_insert_post( $page_data );
 						$entity_type = 'page|' . $new_page_id;
-						
+
+						print_r( $page );
 						if ( $page['template'] && isset( $_POST['dbname'] ) ) {
 								$template_code_sign = 'PD9waHANCi8qDQpUZW1wbGF0ZSBOYW1lOiA8PFRFTVBMQVRFTkFNRT4+DQoqLw0KZ2V0X2hlYWRlcigpOyA/Pg0KPGRpdiBpZD0iY29udGVudCI+DQoJPD9waHAgd2hpbGUgKCBoYXZlX3Bvc3RzKCApICkgOiB0aGVfcG9zdCgpOyA/Pg0KCQk8ZGl2IGNsYXNzPSJwb3N0IiBpZD0icG9zdC08P3BocCB0aGVfSUQoKTsgPz4iPg0KCQkJPD9waHAgdGhlX3RpdGxlKCAnPGRpdiBjbGFzcz0idGl0bGUiPjxoMT4nLCAnPC9oMT48L2Rpdj4nICk7ID8+DQoJCQk8ZGl2IGNsYXNzPSJjb250ZW50Ij4NCgkJCQk8P3BocCB0aGVfY29udGVudCgpOyA/PgkJCQ0KCQkJCTw/cGhwIGVkaXRfcG9zdF9saW5rKCBfXyggJ0VkaXQnLCBUSEVNRURPTUFJTiApICk7ID8+DQoJCQkJDQoJCQk8L2Rpdj4NCgkJPC9kaXY+DQoJPD9waHAgZW5kd2hpbGU7ID8+DQo8L2Rpdj4NCjw/cGhwIGdldF9zaWRlYmFyKCk7ID8+DQo8P3BocCBnZXRfZm9vdGVyKCk7ID8+';
 								$title_words = explode( ' ', $page['title'] );
 								$template_content = str_replace( '<<TEMPLATENAME>>', $title_words[0], base64_decode($template_code_sign) );
-								$theme_path = dirname( dirname(__FILE__) ) . '/wp-content/themes/' . $_POST['dbname'] . '/';
+								$theme_path = dirname( dirname(__FILE__) ) . '/wp-content/themes/' . $dbname . '/';
 								$template_name = 'pages/template-' . sanitize_title( $title_words[0] ) . '.php';
 								if ( file_exists( $theme_path . $template_name ) ) {
 										$template_name = 'pages/template';
@@ -129,7 +130,7 @@ function recursive_pages_creation( $pages, $parent = 0, $acf_identifier_path = '
 								update_post_meta( $new_page_id, '_wp_page_template', $template_name );
 								$entity_type = 'page_template|' . $template_name;
 						}
-						
+
 						$acf_file_name = ( ( $acf_identifier_path ) ? $acf_identifier_path : 'pages_' ) . $key;
 						if ( isset( $_POST['plugins'] ) && in_array( 'acf', $_POST['plugins'] ) ) {
 							$fields = generate_acf_fields_code( $acf_file_name );
@@ -137,13 +138,13 @@ function recursive_pages_creation( $pages, $parent = 0, $acf_identifier_path = '
 								create_acf_fields_group( $page['title'], $entity_type, $fields );
 							}
 						}
-						
+
 						if ( isset( $page['subpages'] ) && is_array( $page['subpages'] ) ) {
-								recursive_pages_creation( $page['subpages'], $new_page_id, $acf_file_name . '_subpages_' );
+								recursive_pages_creation( $page['subpages'], $new_page_id, $acf_file_name . '_subpages_', $dbname );
 						}
 				}
 	 }
-		
+
 }
 
 
@@ -152,12 +153,13 @@ if ( ! function_exists( 'generate_acf_fields_code' ) ) {
 		$acf_path = __DIR__ . '/acf/';
 		$acf_file = $acf_path . $acf_file_name . '.json';
 		if ( file_exists( $acf_file ) ) {
-			if ( $fields_data = json_decode(file_get_contents($acf_file)) ) {
+			if ( $fields_data = json_decode( file_get_contents( $acf_file ) ) ) {
 				foreach( $fields_data as $field_data ) {
+					$slug = ! isset( $field_data->slug ) || empty( $field_data->slug ) ? str_replace( '-', '_', sanitize_title( $field_data->title ) ) : $field_data->slug;
 					$fields[] = array (
 						'key' => 'field_' . uniqid(),
 						'label' => $field_data->title,
-						'name' => '_' . str_replace( '-', '_', sanitize_title( $field_data->title ) ),
+						'name' => $slug,
 						'type' => $field_data->type,
 					);
 				}
