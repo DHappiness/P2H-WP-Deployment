@@ -13,7 +13,7 @@ $deployment_settings = array(
   'svn_password' => '', /* required */
   'install_plugins' => array( 'acf' ),
   'deployment_version' => '1.2', /* Do not change */
-  'delete_after_execution' => false,
+  'delete_after_execution' => true,
 );
 
 // References to plugins' repositories ( except ACF )
