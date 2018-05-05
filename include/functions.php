@@ -110,7 +110,6 @@ function recursive_pages_creation( $pages, $parent = 0, $acf_identifier_path = '
 						$new_page_id = wp_insert_post( $page_data );
 						$entity_type = 'page|' . $new_page_id;
 
-						print_r( $page );
 						if ( $page['template'] && isset( $_POST['dbname'] ) ) {
 								$template_code_sign = 'PD9waHANCi8qDQpUZW1wbGF0ZSBOYW1lOiA8PFRFTVBMQVRFTkFNRT4+DQoqLw0KZ2V0X2hlYWRlcigpOyA/Pg0KPGRpdiBpZD0iY29udGVudCI+DQoJPD9waHAgd2hpbGUgKCBoYXZlX3Bvc3RzKCApICkgOiB0aGVfcG9zdCgpOyA/Pg0KCQk8ZGl2IGNsYXNzPSJwb3N0IiBpZD0icG9zdC08P3BocCB0aGVfSUQoKTsgPz4iPg0KCQkJPD9waHAgdGhlX3RpdGxlKCAnPGRpdiBjbGFzcz0idGl0bGUiPjxoMT4nLCAnPC9oMT48L2Rpdj4nICk7ID8+DQoJCQk8ZGl2IGNsYXNzPSJjb250ZW50Ij4NCgkJCQk8P3BocCB0aGVfY29udGVudCgpOyA/PgkJCQ0KCQkJCTw/cGhwIGVkaXRfcG9zdF9saW5rKCBfXyggJ0VkaXQnLCBUSEVNRURPTUFJTiApICk7ID8+DQoJCQkJDQoJCQk8L2Rpdj4NCgkJPC9kaXY+DQoJPD9waHAgZW5kd2hpbGU7ID8+DQo8L2Rpdj4NCjw/cGhwIGdldF9zaWRlYmFyKCk7ID8+DQo8P3BocCBnZXRfZm9vdGVyKCk7ID8+';
 								$title_words = explode( ' ', $page['title'] );
