@@ -115,4 +115,8 @@ $plugins = array(
 		'label' => 'ShareThis',
 		'url' => $plugins_url . 'sharethis-share-buttons.latest-stable.zip'
 	),
+	'wp-scss/wp-scss.php' => array(
+		'label' => 'WP-SCSS',
+		'url' => $plugins_url . 'wp-scss.latest-stable.zip'
+	),
 );
