@@ -18,7 +18,7 @@
 - Automatically downloading and installation of wordpress plugins just by selecting it in the list of downloadable plugins.
 - Fast basical creating of ACF fields.
 - Automated authentication to admin account after deployment is done.
-- <em>Deployment files are automatically deleting after script is done. So be attentive and don't forget to copy generated credentials at the end.</em>
+- <em>Deployment files are automatically deleting after script is done. So be attentive and don't forget to copy generated WordPress credentials at the end.</em>
 
 
 <strong>Future Features:</strong>
